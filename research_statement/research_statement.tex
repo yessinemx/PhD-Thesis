@@ -2,15 +2,14 @@
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{babel}
+\usepackage[french]{babel}
 \usepackage{geometry}
 \geometry{top=2.2cm,bottom=2.2cm,left=2.4cm,right=2.4cm}
-\usepackage{mathptmx}
+\usepackage{lmodern}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{enumitem}
-\usepackage{parskip}
 \setlength{\parskip}{4pt}
 \usepackage{titlesec}
 \usepackage{fancyhdr}
@@ -123,7 +122,11 @@ The SCR is treated as a fixed constraint in a mean-variance optimisation over
 asset classes, revised \textbf{once per year}. Rebalancing instructions are
 transmitted \textbf{manually by email or Excel spreadsheet to GenAM}
 (Generali Asset Management, the delegated manager), which then executes trades
-over several days.
+over several days. In addition, the optimisation criterion is fixed
+\textit{ex ante}: there is no automatic identification of the dominant
+portfolio objective --- for example duration control, inflation protection,
+carry harvesting, or capital efficiency --- even though the relevant risk
+factor varies across portfolios and across regimes.
 
 \medskip
 \noindent\textbf{Four structural limitations.}
@@ -147,7 +150,10 @@ preventing its direct integration into a factor-based allocation loop.
 Markowitz optimises a single-period mean-variance criterion without
 anticipating future regime transitions or internalising hedging costs.
 Allocation and hedging are decided separately, yielding a suboptimal joint
-policy for an insurer whose critical losses are convex.
+policy for an insurer whose critical losses are convex. Moreover, the
+objective function is imposed uniformly rather than identified automatically
+from the portfolio's dominant risk factor and balance-sheet context, which is
+precisely what a dynamic TPA process should adapt over time.
 
 \item \textbf{Private asset valuation.}
 Private equity, private debt, infrastructure and real estate constitute a
@@ -215,6 +221,16 @@ rather than reacting to them ex post. This reaction function is a direct
 output of the Axis~3 joint policy optimisation and constitutes one of the
 principal industrial deliverables of the thesis.
 
+\medskip
+\noindent\textbf{A central scenario for governance and committee use.}
+Alongside the full distribution of generated scenarios, the thesis also aims
+to extract a \textbf{central scenario} --- for example a regime-conditional
+medoid or barycentric representative path --- that serves as the baseline case
+for committee discussions, budgeting, and comparison with adverse and
+favourable scenarios. The goal is not to replace the stochastic distribution,
+but to provide a single auditable reference scenario around which allocation
+decisions and deviations can be explained.
+
 % ================================================================
 \section{Research Questions}
 % ================================================================
@@ -236,13 +252,16 @@ of TPA factors, the current regime, and key liability states including
 private asset NAV lags --- that is sufficiently accurate in
 decision-relevant zones (near the regulatory threshold, under stress regimes),
 with controlled error bounds per regime and sub-10ms inference time,
-enabling its integration into a dynamic optimisation loop?
+enabling its integration into a dynamic optimisation loop as an explicit
+capital constraint in the allocation programme?
 \end{rqthm}
 
 \begin{rqthm}[Joint allocation and deep hedging policy]
 How to learn a dynamic decision policy jointly optimising TPA factor
-exposures and explicit hedging positions (deep hedging), under capital
-and liquidity constraints including private asset engagement limits,
+exposures and explicit hedging positions (deep hedging), with a
+portfolio-specific objective function automatically inferred from the
+dominant risk factor to optimise, and under capital and liquidity constraints
+including an explicit SCR proxy constraint and private asset engagement limits,
 in the presence of unstable, regime-conditional factor dependencies,
 so as to reduce the tail risk of the insurance balance sheet?
 \end{rqthm}
@@ -324,8 +343,10 @@ stress regimes.
 \textbf{Identified gap.}
 Learning a joint allocation-and-hedging policy --- fed by an unstable
 dependence model and a fast SCR proxy, respecting private asset engagement
-constraints, within a TPA insurance framework under Solvency~II --- does
-not exist in the literature. This is the contribution of RQ3.
+constraints, while automatically selecting the relevant portfolio objective in
+factor space and being validated through out-of-sample allocation backtests
+within a TPA insurance framework under Solvency~II --- does not exist in the
+literature. This is the contribution of RQ3.
 
 % ================================================================
 \section{Methodology and Deliverables}
@@ -392,6 +413,12 @@ to the conditional SGM case with online HMM --- the key open question: how do
 these bounds evolve when regime $z_t$ is estimated sequentially with particle
 filter inference error?
 
+\noindent\textbf{Scenario selection layer.}
+Beyond generating a full scenario cloud, Axis~1 also includes a scenario
+selection step producing a \textbf{central regime-conditional scenario} used
+as the baseline path for reporting, comparison, and downstream optimisation
+diagnostics.
+
 \noindent\textbf{Python deliverable --- \texttt{factor\_engine} module.}
 \begin{itemize}[leftmargin=2em,itemsep=1pt]
 \item \texttt{HMMRegimeFilter}: online SMC filter, sequential update of
@@ -403,6 +430,9 @@ filter inference error?
 \item \texttt{FactorScenarioGenerator}: generation of $N$ regime-conditional
   factor scenarios via GAN (stage 1) or SGM (stage 2); backtesting on 2008,
   2020 and 2022 crises.
+\item \texttt{CentralScenarioSelector}: extraction of a representative
+  central scenario (medoid / barycenter) from the generated scenario set for
+  governance, budgeting and committee use.
 \end{itemize}
 
 \subsection{Axis 2 --- Supervised SCR proxy (Year 2)}
@@ -436,7 +466,9 @@ $n_k$ in regime $k$ and with confidence level $1-\delta$.
 First SCR proxy jointly conditioned on the macroeconomic regime, TPA factors,
 and private asset NAV lag, with empirical error bounds validated across
 portfolio ranges including Fonds Euro and Euro-Croissance. Inference in
-$<5$~ms versus several hours for the full Prophet/MoSes calculation.
+$<5$~ms versus several hours for the full Prophet/MoSes calculation. This
+proxy is not only a reporting object: it enters the downstream allocation
+programme as an explicit state-dependent capital constraint.
 
 \noindent\textbf{Python deliverable --- \texttt{scr\_proxy} module.}
 \begin{itemize}[leftmargin=2em,itemsep=1pt]
@@ -453,6 +485,14 @@ $<5$~ms versus several hours for the full Prophet/MoSes calculation.
 \subsection{Axis 3 --- Joint allocation and deep hedging policy (Year 3)}
 
 \noindent\textbf{Model.}
+For each portfolio, a latent objective map
+$\psi_t = g_\eta(\mathbf{F}_t,z_t,\mathbf{P}_t,\widehat{\mathrm{SCR}}_t)$
+identifies the dominant factor objective to optimise (for example duration
+control, inflation hedging, carry extraction, liquidity preservation, or
+capital efficiency) as a function of the current regime, liability state and
+capital position. This layer is what allows the framework to move from a
+static allocation rule to a genuinely dynamic allocation policy.
+
 The agent state is $s_t = (\mathbf{F}_t,\hat{C}_{z_t},z_t,\mathbf{P}_t,
 \widehat{\mathrm{SCR}}_t)$, where $\hat{C}_{z_t}$ is the regime-estimated
 copula from Axis~1 and $\widehat{\mathrm{SCR}}_t$ the proxy from Axis~2.
@@ -462,18 +502,20 @@ $\mathbf{h}_t \in \mathcal{H}$ is the hedging position (puts, overlays,
 convexity structures). The policy $\pi$ maximises:
 \begin{equation}
   \max_\pi\;\mathbb{E}_\pi\!\left[\sum_{t=0}^T
-  \Bigl(r(\mathbf{w}_t,\mathbf{h}_t,\mathbf{F}_{t+1})
-  - \lambda_1\max(0,\widehat{\mathrm{SCR}}_t - \bar{C})
-  - \lambda_2 c(\mathbf{h}_t)
-  - \lambda_3\|\mathbf{w}_t - \mathbf{w}_{t-1}\|_1
-  - \lambda_4 \mathbf{1}[\Delta w^{\mathrm{PA}}_t > 0]
+  \Bigl(r_{\psi_t}(\mathbf{w}_t,\mathbf{h}_t,\mathbf{F}_{t+1})
+  - \lambda_1 c(\mathbf{h}_t)
+  - \lambda_2\|\mathbf{w}_t - \mathbf{w}_{t-1}\|_1
+  - \lambda_3 \mathbf{1}[\Delta w^{\mathrm{PA}}_t > 0]
   \Bigr)\right],
 \label{eq:obj}
 \end{equation}
-where $r$ is the risk-adjusted return, $\bar{C}$ the regulatory capital
-budget, $c(\mathbf{h}_t)$ the hedging cost (option premium, bid-ask spread),
-and the term $\lambda_4 \mathbf{1}[\Delta w^{\mathrm{PA}}_t > 0]$ penalises
-new private asset commitments to reflect their irrevocable, illiquid nature.
+subject to the explicit capital constraint
+\[\widehat{\mathrm{SCR}}_t \le \bar{C},\]
+where $r_{\psi_t}$ is the portfolio-specific objective functional selected in
+factor space, $\bar{C}$ the regulatory capital budget,
+$c(\mathbf{h}_t)$ the hedging cost (option premium, bid-ask spread), and the
+term $\lambda_3 \mathbf{1}[\Delta w^{\mathrm{PA}}_t > 0]$ penalises new
+private asset commitments to reflect their irrevocable, illiquid nature.
 
 \noindent\textbf{Integrated deep hedging.}
 Unlike classical deep hedging (Buehler et al., 2019) which targets payoff
@@ -490,13 +532,15 @@ correction dynamic.
   \texttt{factor\_engine} and \texttt{scr\_proxy}; simulates regime-switching
   trajectories including private asset NAV dynamics.
 \item \texttt{AllocationHedgingAgent}: PPO/SAC agent with dual head
-  (factor allocation + hedging); trained on 10+ years of simulated
-  multi-regime data.
+  (factor allocation + hedging) and dynamic objective selection head; trained
+  on 10+ years of simulated multi-regime data.
 \item \texttt{RebalancingTrigger}: automated detection of trigger events
   (regime change, SCR threshold breach, target drift $>\Delta$);
   \texttt{GenAMBridge} interface for automated order execution.
-\item \texttt{StrategyBacktester}: full backtesting on 2008, 2020, 2022;
-  RoRC, regime-conditional Sharpe, SCR CVaR, hedging cost metrics.
+\item \texttt{StrategyBacktester}: rolling and expanding-window out-of-sample
+  backtests on historical and simulated allocations, including 2008, 2020,
+  2022; RoRC, regime-conditional Sharpe, SCR CVaR, turnover and hedging cost
+  metrics.
 \end{itemize}
 
 % ================================================================
@@ -517,14 +561,16 @@ unit tests.
 HMMRegimeFilter (SMC) & LiabilityDataPipeline & TPA\_Environment (Gym) \\
 RegimeConditionedGAN & SCRProxyModel & AllocationHedging \\
 RegimeConditionedSGM & (MLP + attention) & Agent (PPO/SAC) \\
-FactorScenarioGen. & SCRCalculator & RebalancingTrigger \\
+FactorScenarioGen. / & SCRCalculator & RebalancingTrigger / \\
+CentralScenarioSel. & & StrategyBacktester \\
 \midrule
 \textit{Input:} Bloomberg & \textit{Input:} Prophet/ & \textit{Input:} \\
 rates, spreads, vol, & MoSes + M1 factors & M1 + M2 outputs \\
 private NAV lags & + private NAV lag & \\
 \textit{Output:} regime- & \textit{Output:} SCR & \textit{Output:} \\
 conditional scenarios & in $<5$~ms + error & allocation + hedge \\
-+ copulas $\hat{C}_k$ & bounds per regime & + GenAM orders \\
++ central scenario + & bounds per regime & + GenAM orders \\
++ copulas $\hat{C}_k$ & + optimisation constraint & + OOS backtests \\
 \bottomrule
 \end{tabular}
 
@@ -552,16 +598,20 @@ GPU cluster for training; CPU for production inference.
 \addlinespace
 \emph{Methodological}
 & (i) HMM-SMC architecture coupled to a regime-conditional GAN/SGM
-  with private asset vintage lag factor (module 1);
+  with private asset vintage lag factor and central scenario extraction
+  (module 1);
   (ii) Supervised SCR proxy conditioned on regime and TPA factors
-  with adaptive weighting (module 2);
+  with adaptive weighting and explicit integration as optimisation constraint
+  (module 2);
   (iii) Dual allocation-and-hedging agent under private asset
-  engagement constraints (module 3). \\
+  engagement constraints, automatic portfolio-objective identification and
+  out-of-sample backtesting (module 3). \\
 \addlinespace
 \emph{Industrial}
 & Python library \texttt{solvency-tpa} in production at Generali:
-  auditable regime-conditional scenario generation, SCR in $<5$~ms,
-  TPA allocation with integrated hedging and GenAM interface. \\
+  auditable regime-conditional scenario generation with a central baseline
+  scenario, SCR in $<5$~ms as optimisation constraint,
+  TPA allocation with integrated hedging, OOS backtesting and GenAM interface. \\
 \addlinespace
 \emph{Regulatory}
 & Models with controlled, auditable guarantees --- $W_2$ bounds for
@@ -583,6 +633,7 @@ GPU cluster for training; CPU for production inference.
 & Bloomberg factor database (20 years) including private asset NAV lags;
   online HMM-SMC calibration in production;
   regime-conditional GAN with copula validation on historical crises;
+  representative central scenario extraction;
   \texttt{factor\_engine} v1.0;
   paper submission (Journal of Multivariate Analysis or Finance \&
   Stochastics). \\
@@ -591,15 +642,16 @@ GPU cluster for training; CPU for production inference.
 & Actuarial design-of-experiment (Prophet/MoSes);
   training and validation of regime-conditioned SCR proxy
   with private asset NAV lag;
+  integration of the SCR proxy as an explicit optimisation constraint;
   empirical error bounds per regime and portfolio range;
   \texttt{scr\_proxy} v1.0;
   paper submission (Insurance: Mathematics and Economics). \\
 \addlinespace
 3 & 3rd year
 & Training of dual allocation-and-hedging agent with private asset
-  engagement constraints;
+  engagement constraints and automatic objective selection per portfolio;
   full three-module coupling;
-  multi-regime backtesting (2008, 2020, 2022);
+  multi-regime out-of-sample backtesting (2008, 2020, 2022);
   \texttt{dl\_allocator} v1.0;
   GenAM interface in production;
   PhD defence and publications
