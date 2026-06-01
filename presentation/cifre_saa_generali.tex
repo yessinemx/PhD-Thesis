@@ -10,8 +10,8 @@
 \usepackage{ragged2e}
 \usepackage{xcolor}
 
-\usetheme{Madrid}
-\usecolortheme{default}
+\usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
+\metroset{sectionpage=none,subsectionpage=none}
 \setbeamertemplate{navigation symbols}{}
 
 \definecolor{GeneraliRed}{RGB}{172,27,45}
@@ -19,33 +19,14 @@
 \definecolor{SoftGray}{RGB}{245,247,250}
 
 \setbeamercolor{structure}{fg=GeneraliRed}
-\setbeamercolor{title}{fg=white,bg=GeneraliRed}
-\setbeamercolor{frametitle}{fg=white,bg=GeneraliRed}
+\setbeamercolor{normal text}{fg=Slate,bg=white}
+\setbeamercolor{title}{fg=GeneraliRed}
+\setbeamercolor{subtitle}{fg=Slate}
+\setbeamercolor{frametitle}{fg=GeneraliRed,bg=white}
 \setbeamercolor{block title}{fg=white,bg=GeneraliRed}
 \setbeamercolor{block body}{bg=SoftGray}
 \setbeamercolor{itemize item}{fg=GeneraliRed}
 \setbeamercolor{itemize subitem}{fg=GeneraliRed}
-
-\setbeamertemplate{title page}{%
-  \vspace*{0.8cm}
-  \begin{beamercolorbox}[wd=\paperwidth,sep=0.7cm,left]{title}
-    {\usebeamerfont{title}\inserttitle\par}
-    \vspace{0.2cm}
-    {\usebeamerfont{subtitle}\insertsubtitle\par}
-  \end{beamercolorbox}
-  \vspace{0.8cm}
-  \begin{flushleft}
-    {\large \insertauthor\par}
-    \vspace{0.2cm}
-    {\normalsize \insertinstitute\par}
-    \vspace{0.2cm}
-    {\normalsize \insertdate\par}
-  \end{flushleft}
-  \vfill
-  \begin{beamercolorbox}[wd=\paperwidth,sep=0.35cm,left]{normal text}
-    \textbf{Objectif de la présentation :} partager le cadrage du projet de thèse CIFRE avec l'équipe SAA de Generali France.
-  \end{beamercolorbox}
-}
 
 \newcommand{\highlight}[1]{\textcolor{GeneraliRed}{\textbf{#1}}}
 
