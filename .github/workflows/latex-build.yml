@@ -1,0 +1,74 @@
+name: Build LaTeX Documents
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'manuscript/**'
+      - 'presentation/**'
+      - 'research_statement/**'
+      - '.github/workflows/latex-build.yml'
+  pull_request:
+    paths:
+      - 'manuscript/**'
+      - 'presentation/**'
+      - 'research_statement/**'
+      - '.github/workflows/latex-build.yml'
+
+  workflow_dispatch:
+
+jobs:
+  build-manuscript:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile manuscript
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: manuscript
+
+      - name: Upload manuscript PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: manuscript-pdf
+          path: manuscript/main.pdf
+
+  build-research-statement:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile research statement
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: research_statement.tex
+          working_directory: research_statement
+
+      - name: Upload research statement PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-statement-pdf
+          path: research_statement/research_statement.pdf
+
+  build-presentation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile presentation
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: cifre_saa_generali.tex
+          working_directory: presentation
+
+      - name: Upload presentation PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: cifre-saa-generali-pdf
+          path: presentation/cifre_saa_generali.pdf

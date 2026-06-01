@@ -1,0 +1,28 @@
+\documentclass[11pt,a4paper]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{hyperref}
+
+\title{Titre provisoire de la thèse}
+\author{Yassine Mannai}
+\date{\today}
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+\pagenumbering{roman}
+\maketitle
+\tableofcontents
+
+\clearpage
+\hypersetup{pageanchor=true}
+\pagenumbering{arabic}
+\chapter{Introduction générale}
+\input{chapters/introduction}
+
+\end{document}

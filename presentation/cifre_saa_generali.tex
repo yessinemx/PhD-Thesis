@@ -1,0 +1,214 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage{xcolor}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+
+\definecolor{GeneraliRed}{RGB}{172,27,45}
+\definecolor{Slate}{RGB}{52,73,94}
+\definecolor{SoftGray}{RGB}{245,247,250}
+
+\setbeamercolor{structure}{fg=GeneraliRed}
+\setbeamercolor{title}{fg=white,bg=GeneraliRed}
+\setbeamercolor{frametitle}{fg=white,bg=GeneraliRed}
+\setbeamercolor{block title}{fg=white,bg=GeneraliRed}
+\setbeamercolor{block body}{bg=SoftGray}
+\setbeamercolor{itemize item}{fg=GeneraliRed}
+\setbeamercolor{itemize subitem}{fg=GeneraliRed}
+
+\setbeamertemplate{title page}{%
+  \vspace*{0.8cm}
+  \begin{beamercolorbox}[wd=\paperwidth,sep=0.7cm,left]{title}
+    {\usebeamerfont{title}\inserttitle\par}
+    \vspace{0.2cm}
+    {\usebeamerfont{subtitle}\insertsubtitle\par}
+  \end{beamercolorbox}
+  \vspace{0.8cm}
+  \begin{flushleft}
+    {\large \insertauthor\par}
+    \vspace{0.2cm}
+    {\normalsize \insertinstitute\par}
+    \vspace{0.2cm}
+    {\normalsize \insertdate\par}
+  \end{flushleft}
+  \vfill
+  \begin{beamercolorbox}[wd=\paperwidth,sep=0.35cm,left]{normal text}
+    \textbf{Objectif de la présentation :} partager le cadrage du projet de thèse CIFRE avec l'équipe SAA de Generali France.
+  \end{beamercolorbox}
+}
+
+\newcommand{\highlight}[1]{\textcolor{GeneraliRed}{\textbf{#1}}}
+
+\title[Thèse CIFRE]{Projet de thèse CIFRE}
+\subtitle{Vers un Total Portfolio Approach opérationnel pour Generali France}
+\author[Y. Mannai]{Yassine Mannai}
+\institute[Generali France]{Generali France \\ Université Paris Dauphine-PSL}
+\date[Juin 2026]{Juin 2026}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Pourquoi ce sujet maintenant ?}
+  \begin{itemize}
+    \item En 2022, la diversification traditionnelle a cessé de protéger: \highlight{actions et obligations ont baissé ensemble}.
+    \item Les dépendances entre facteurs de marché ne sont pas stables: elles changent vite selon le régime macroéconomique.
+    \item Pour un assureur, le sujet n'est pas seulement la performance d'actifs, mais le \highlight{pilotage du bilan complet} sous contrainte de capital.
+    \item L'enjeu est donc de passer d'une SAA statique par classes d'actifs à une logique plus \highlight{factorielle, dynamique et intégrée}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Constat sur le processus actuel}
+  \begin{columns}[T,totalwidth=\textwidth]
+    \column{0.48\textwidth}
+    \begin{block}{Chaîne de décision aujourd'hui}
+      \begin{itemize}
+        \item ESG avec corrélations historiques moyennes
+        \item Calcul du SCR lourd via modèles actuariels et proxy LSMC
+        \item Optimisation SAA revue principalement à fréquence annuelle
+        \item Mise en oeuvre opérationnelle encore partiellement manuelle
+      \end{itemize}
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Limites pour l'équipe SAA}
+      \begin{itemize}
+        \item Faible prise en compte des ruptures de régime
+        \item Temps de calcul incompatible avec des boucles de décision rapides
+        \item Allocation et couverture pensées séparément
+        \item Actifs privés lissés, donc risque économique sous-estimé en stress
+      \end{itemize}
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Ambition de la thèse}
+  \begin{block}{Question centrale}
+    Comment rendre le \highlight{Total Portfolio Approach} exploitable pour un assureur sous Solvabilité II,
+    en tenant compte des changements de régime, du coût en capital et des besoins de couverture ?
+  \end{block}
+
+  \vspace{0.3cm}
+  \begin{itemize}
+    \item Construire une lecture commune des risques via des \highlight{facteurs économiques partagés} entre actifs et passifs.
+    \item Disposer d'un outil capable de répondre vite à des questions de type \highlight{``que faire si le régime change ?''}.
+    \item Produire à terme une \highlight{bibliothèque Python industrialisable} pour l'équipe investissement et les parties prenantes risque.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vision cible pour Generali France}
+  \begin{columns}[T,totalwidth=\textwidth]
+    \column{0.5\textwidth}
+    \begin{block}{Ce que l'on cherche à piloter}
+      \begin{itemize}
+        \item Facteurs de taux
+        \item Inflation
+        \item Croissance
+        \item Liquidité / carry
+        \item Facteurs communs actifs-passifs
+      \end{itemize}
+    \end{block}
+
+    \column{0.5\textwidth}
+    \begin{block}{Ce que cela permet}
+      \begin{itemize}
+        \item Mesurer l'impact marginal d'une décision sur le bilan total
+        \item Comparer plus proprement actifs cotés, actifs privés et couvertures
+        \item Préparer des plans d'action avant les phases de stress
+      \end{itemize}
+    \end{block}
+  \end{columns}
+
+  \vspace{0.3cm}
+  \centering
+  \highlight{Idée directrice :} passer d'une allocation par silo à une allocation pilotée par facteurs et contraintes de capital.
+\end{frame}
+
+\begin{frame}{Axe 1: modéliser les dépendances selon le régime}
+  \begin{itemize}
+    \item Identifier en temps réel le \highlight{régime macro-financier} courant.
+    \item Simuler les facteurs économiques avec des dépendances non linéaires et asymétriques.
+    \item Mieux représenter les épisodes où la diversification disparaît.
+    \item Intégrer explicitement la dynamique particulière des \highlight{actifs privés} et leur retard de valorisation.
+  \end{itemize}
+
+  \vspace{0.25cm}
+  \begin{block}{Livrable métier}
+    Un moteur de scénarios capable de générer des stress tests plus réalistes pour la SAA et le TPA.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Axe 2: obtenir un proxy SCR rapide et exploitable}
+  \begin{itemize}
+    \item Apprendre un proxy supervisé du \highlight{SCR} à partir des facteurs, du régime et des variables passif.
+    \item Conserver la précision là où elle compte vraiment: zones de stress et seuils réglementaires.
+    \item Passer d'un calcul en plusieurs heures à une estimation quasi instantanée.
+  \end{itemize}
+
+  \vspace{0.25cm}
+  \begin{block}{Livrable métier}
+    Un outil de \highlight{what-if analysis} utilisable dans des boucles de décision, d'allocation et de couverture.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Axe 3: décider conjointement allocation et couverture}
+  \begin{itemize}
+    \item Optimiser en même temps les \highlight{expositions factorielles} et les stratégies de couverture.
+    \item Arbitrer entre performance, coût de couverture, contraintes de capital et contraintes de liquidité.
+    \item Tenir compte du caractère moins réallouable des actifs privés.
+  \end{itemize}
+
+  \vspace{0.25cm}
+  \begin{block}{Résultat attendu}
+    Une politique de réallocation plus robuste aux changements de régime, avec une logique de déclenchement explicite.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Ce que le projet peut apporter à l'équipe SAA}
+  \begin{itemize}
+    \item \highlight{Une meilleure lecture des risques de dépendance} en environnement dégradé.
+    \item \highlight{Des arbitrages plus rapides} entre rendement, SCR et coût de couverture.
+    \item \highlight{Un cadre commun} entre investissement, risque et actuariel autour de facteurs de bilan.
+    \item \highlight{Un outil industrialisable} pour préparer des décisions et challenger des allocations.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Feuille de route sur 3 ans}
+  \renewcommand{\arraystretch}{1.25}
+  \begin{tabularx}{\textwidth}{>{\RaggedRight\arraybackslash}p{1.7cm}>{\RaggedRight\arraybackslash}X}
+    \toprule
+    \textbf{Année} & \textbf{Objectif principal} \\
+    \midrule
+    Année 1 & Base de données facteurs, détection de régimes, premier moteur de scénarios conditionnels. \\
+    Année 2 & Construction et validation du proxy SCR rapide, avec focus sur les zones de stress. \\
+    Année 3 & Politique jointe allocation/couverture, backtests et préparation de l'industrialisation. \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}
+
+\begin{frame}{Points à discuter avec l'équipe SAA}
+  \begin{itemize}
+    \item Quels cas d'usage métier doivent être prioritaires dès la première année ?
+    \item Quels facteurs sont les plus pertinents pour représenter vos arbitrages réels ?
+    \item Quel niveau d'automatisation est souhaitable entre aide à la décision et exécution ?
+    \item Quels indicateurs permettront de juger rapidement la valeur du projet ?
+  \end{itemize}
+
+  \vfill
+  \centering
+  \Large \highlight{Merci}
+\end{frame}
+
+\end{document}
