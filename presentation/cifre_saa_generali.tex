@@ -81,24 +81,27 @@
     en tenant compte des changements de régime, du coût en capital et des besoins de couverture ?
   \end{block}
 
-  \vspace{0.3cm}
+  \vspace{0.1cm}
   \begin{itemize}
     \item Construire une lecture commune des risques via des \highlight{facteurs économiques partagés} entre actifs et passifs.
-    \item Disposer d'un outil capable de répondre vite à des questions de type \highlight{``que faire si le régime change ?''}.
-    \item Produire à terme une \highlight{bibliothèque Python industrialisable} pour l'équipe investissement et les parties prenantes risque.
+    \item Répondre vite à des questions de type \highlight{``que faire si le régime change ?''}.
+    \item Produire une \highlight{bibliothèque Python industrialisable} (\texttt{solvency-tpa}) pour l'investissement et le risque.
   \end{itemize}
+
+  \vspace{0.15cm}
+  {\footnotesize Les fonds souverains déjà passés au TPA (Future Fund, CPP) rapportent $\approx$\highlight{+1\,\%/an} face à la SAA classique.}
 \end{frame}
 
 \begin{frame}{Vision cible pour Generali France}
   \begin{columns}[T,totalwidth=\textwidth]
     \column{0.5\textwidth}
-    \begin{block}{Ce que l'on cherche à piloter}
+    \begin{block}{Les facteurs TPA à piloter}
       \begin{itemize}
-        \item Facteurs de taux
+        \item Duration (taux)
         \item Inflation
         \item Croissance
         \item Liquidité / carry
-        \item Facteurs communs actifs-passifs
+        \item \highlight{Facteur transverse actif-passif} : la courbe des taux reprice à la fois les obligations \emph{et} le BEL
       \end{itemize}
     \end{block}
 
@@ -112,48 +115,49 @@
     \end{block}
   \end{columns}
 
-  \vspace{0.3cm}
+  \vspace{0.1cm}
   \centering
-  \highlight{Idée directrice :} passer d'une allocation par silo à une allocation pilotée par facteurs et contraintes de capital.
+  \highlight{Idée directrice :} étendre le TPA au passif et piloter le bilan par facteurs sous contrainte de capital, plutôt que par silo d'actifs.
 \end{frame}
 
 \begin{frame}{Axe 1: modéliser les dépendances selon le régime}
   \begin{itemize}
-    \item Identifier en temps réel le \highlight{régime macro-financier} courant.
-    \item Simuler les facteurs économiques avec des dépendances non linéaires et asymétriques.
-    \item Mieux représenter les épisodes où la diversification disparaît.
-    \item Intégrer explicitement la dynamique particulière des \highlight{actifs privés} et leur retard de valorisation.
+    \item Identifier en temps réel le \highlight{régime macro-financier} via un filtre séquentiel (SMC).
+    \item Simuler les facteurs TPA conditionnellement au régime, avec dépendances de queue non linéaires: d'abord un modèle génératif flexible (GAN), puis un modèle à \highlight{garanties de convergence} (SGM, distance de Wasserstein).
+    \item Valider les dépendances par \highlight{tests de copules} $\Rightarrow$ auditabilité réglementaire.
+    \item Traiter le \highlight{retard de valorisation des actifs privés} (vintage lag).
   \end{itemize}
 
-  \vspace{0.25cm}
-  \begin{block}{Livrable métier}
-    Un moteur de scénarios capable de générer des stress tests plus réalistes pour la SAA et le TPA.
+  \vspace{0.15cm}
+  \begin{block}{Livrable métier (\texttt{factor\_engine})}
+    Un moteur de scénarios réalistes pour la SAA et le TPA, plus un \highlight{scénario central} (médoïde) pour les comités et le budget.
   \end{block}
 \end{frame}
 
 \begin{frame}{Axe 2: obtenir un proxy SCR rapide et exploitable}
   \begin{itemize}
-    \item Apprendre un proxy supervisé du \highlight{SCR} à partir des facteurs, du régime et des variables passif.
-    \item Conserver la précision là où elle compte vraiment: zones de stress et seuils réglementaires.
-    \item Passer d'un calcul en plusieurs heures à une estimation quasi instantanée.
+    \item Apprendre un proxy supervisé du \highlight{SCR} (réseau de neurones) à partir des facteurs, du régime et des états passif, dont le lag des actifs privés.
+    \item \highlight{Pondération adaptative}: la précision est concentrée là où elle compte, près du seuil réglementaire et en régime de stress, avec des bornes d'erreur par régime.
+    \item Passer de \highlight{plusieurs heures à moins de 5\,ms} par évaluation.
+    \item Intégrer le proxy comme \highlight{contrainte de capital explicite} dans l'optimisation, pas seulement comme objet de reporting.
   \end{itemize}
 
-  \vspace{0.25cm}
-  \begin{block}{Livrable métier}
-    Un outil de \highlight{what-if analysis} utilisable dans des boucles de décision, d'allocation et de couverture.
+  \vspace{0.2cm}
+  \begin{block}{Livrable métier (\texttt{scr\_proxy})}
+    Un SCR quasi instantané, utilisable dans des boucles de décision, d'allocation et de couverture.
   \end{block}
 \end{frame}
 
 \begin{frame}{Axe 3: décider conjointement allocation et couverture}
   \begin{itemize}
-    \item Optimiser en même temps les \highlight{expositions factorielles} et les stratégies de couverture.
-    \item Arbitrer entre performance, coût de couverture, contraintes de capital et contraintes de liquidité.
-    \item Tenir compte du caractère moins réallouable des actifs privés.
+    \item Optimiser en même temps les \highlight{expositions factorielles} et les couvertures (\highlight{deep hedging}).
+    \item \highlight{Identifier automatiquement l'objectif dominant} par portefeuille (duration, inflation, carry, efficacité en capital\ldots).
+    \item Arbitrer sous contraintes de capital (proxy SCR), de liquidité et d'engagements irrévocables des actifs privés, pour réduire le \highlight{risque de queue} du bilan (CVaR du déficit).
   \end{itemize}
 
-  \vspace{0.25cm}
-  \begin{block}{Résultat attendu}
-    Une politique de réallocation plus robuste aux changements de régime, avec une logique de déclenchement explicite.
+  \vspace{0.2cm}
+  \begin{block}{Livrable métier (\texttt{dl\_allocator})}
+    Une \highlight{fonction de réaction d'allocation}: un plan what-if calculé ex ante, avec déclenchement explicite et interface d'exécution GenAM.
   \end{block}
 \end{frame}
 
@@ -170,11 +174,11 @@
   \renewcommand{\arraystretch}{1.25}
   \begin{tabularx}{\textwidth}{>{\RaggedRight\arraybackslash}p{1.7cm}>{\RaggedRight\arraybackslash}X}
     \toprule
-    \textbf{Année} & \textbf{Objectif principal} \\
+    \textbf{Année} & \textbf{Objectif principal et livrable} \\
     \midrule
-    Année 1 & Base de données facteurs, détection de régimes, premier moteur de scénarios conditionnels. \\
-    Année 2 & Construction et validation du proxy SCR rapide, avec focus sur les zones de stress. \\
-    Année 3 & Politique jointe allocation/couverture, backtests et préparation de l'industrialisation. \\
+    Année 1 & Base de données facteurs (20 ans, lag actifs privés), détection de régimes en ligne, GAN conditionnel validé par copules, scénario central. \texttt{factor\_engine} v1.0. \\
+    Année 2 & Proxy SCR conditionné au régime (< 5\,ms), bornes d'erreur, intégration comme contrainte d'optimisation; SGM à garanties $W_2$. \texttt{scr\_proxy} v1.0. \\
+    Année 3 & Politique jointe allocation / deep hedging, backtests multi-régimes (2008, 2020, 2022), interface GenAM. \texttt{dl\_allocator} v1.0. \\
     \bottomrule
   \end{tabularx}
 \end{frame}
