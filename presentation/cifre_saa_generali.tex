@@ -48,6 +48,7 @@
     \item Les dépendances entre facteurs de marché ne sont pas stables: elles changent vite selon le régime macroéconomique.
     \item Pour un assureur, le sujet n'est pas seulement la performance d'actifs, mais le \highlight{pilotage du bilan complet} sous contrainte de capital.
     \item L'enjeu est donc de passer d'une SAA statique par classes d'actifs à une logique plus \highlight{factorielle, dynamique et intégrée}.
+    \item L'\highlight{intégration} est ici entendue du point de vue \highlight{actif-passif (ALM)} : il s'agit de piloter l'ensemble du bilan, et non uniquement le portefeuille d'actifs isolément.
   \end{itemize}
 \end{frame}
 
@@ -70,6 +71,8 @@
         \item Temps de calcul incompatible avec des boucles de décision rapides
         \item Allocation et couverture pensées séparément
         \item Actifs privés lissés, donc risque économique sous-estimé en stress
+        \item Scénarios de passif \highlight{statiques} dans l'optimisation SAA (pas de stress dynamique type \emph{best~case / worst~case} du passif)
+        \item Boucles SAA~$\leftrightarrow$~Risques : calcul du SCR «~stock~» côté Risques, optimisation SAA, puis recalcul du SCR des allocations proposées — intégrer ces boucles dans un \highlight{optimiseur unifié} est justement un apport clé du projet
       \end{itemize}
     \end{block}
   \end{columns}
@@ -89,7 +92,7 @@
   \end{itemize}
 
   \vspace{0.15cm}
-  {\footnotesize Les fonds souverains déjà passés au TPA (Future Fund, CPP) rapportent $\approx$\highlight{+1\,\%/an} face à la SAA classique.}
+  {\footnotesize Pour un assureur, la fonction d'utilité est \highlight{multi-dimensionnelle} : rendement total, revenu courant (\emph{carry}), matching actif-passif, liquidité et contrainte en capital (SCR). L'approche TPA permet d'\highlight{élargir cette fonction d'utilité} au-delà de la seule dimension rendement — là où les fonds souverains (Future Fund, CPP) l'ont appliquée à l'optimisation du rendement total, Generali en adapte la logique au \highlight{bilan assurantiel}.}
 \end{frame}
 
 \begin{frame}{Vision cible pour Generali France}
@@ -111,6 +114,7 @@
         \item Mesurer l'impact marginal d'une décision sur le bilan total
         \item Comparer plus proprement actifs cotés, actifs privés et couvertures
         \item Préparer des plans d'action avant les phases de stress
+        \item Générer un \highlight{surplus de rendement sous contrainte de bilan} — effet secondaire de l'optimisation, et non objectif principal
       \end{itemize}
     \end{block}
   \end{columns}
@@ -125,7 +129,7 @@
     \item Identifier en temps réel le \highlight{régime macro-financier} via un filtre séquentiel (SMC).
     \item Simuler les facteurs TPA conditionnellement au régime, avec dépendances de queue non linéaires: d'abord un modèle génératif flexible (GAN), puis un modèle à \highlight{garanties de convergence} (SGM, distance de Wasserstein).
     \item Valider les dépendances par \highlight{tests de copules} $\Rightarrow$ auditabilité réglementaire.
-    \item Traiter le \highlight{retard de valorisation des actifs privés} (vintage lag).
+    \item Traiter le \highlight{retard de valorisation des actifs privés} (\emph{valuation lag}) et la \highlight{stochasticité réelle des trajectoires économiques}, masquée par le lissage comptable — l'enjeu est de réconcilier perception comptable et réalité économique du risque.
   \end{itemize}
 
   \vspace{0.15cm}
@@ -161,7 +165,7 @@
   \end{block}
 \end{frame}
 
-\begin{frame}{Ce que le projet peut apporter à l'équipe SAA}
+\begin{frame}{Risque de marché et risque actuariel}
   \begin{itemize}
     \item \highlight{Une meilleure lecture des risques de dépendance} en environnement dégradé.
     \item \highlight{Des arbitrages plus rapides} entre rendement, SCR et coût de couverture.
@@ -183,17 +187,11 @@
   \end{tabularx}
 \end{frame}
 
-\begin{frame}{Points à discuter avec l'équipe SAA}
-  \begin{itemize}
-    \item Quels cas d'usage métier doivent être prioritaires dès la première année ?
-    \item Quels facteurs sont les plus pertinents pour représenter vos arbitrages réels ?
-    \item Quel niveau d'automatisation est souhaitable entre aide à la décision et exécution ?
-    \item Quels indicateurs permettront de juger rapidement la valeur du projet ?
-  \end{itemize}
-
+\begin{frame}{}
   \vfill
   \centering
   \Large \highlight{Merci}
+  \vfill
 \end{frame}
 
 \end{document}
