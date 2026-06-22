@@ -29,6 +29,7 @@
 \setbeamercolor{itemize subitem}{fg=GeneraliRed}
 
 \newcommand{\highlight}[1]{\textcolor{GeneraliRed}{\textbf{#1}}}
+\newcommand{\source}[1]{{\scriptsize\textcolor{Slate!65}{[#1]}}}
 
 \title[Thèse CIFRE]{Projet de thèse CIFRE}
 \subtitle{Vers un Total Portfolio Approach opérationnel pour Generali France}
@@ -87,9 +88,10 @@
     \item Construire une lecture commune des risques via des \highlight{facteurs économiques partagés} entre actifs et passifs.
     \item Répondre vite aux questions \highlight{``que faire si le régime change ?''}.
     \item Livrer des \highlight{modules industrialisés intégrés à GPS} (\emph{Group Portfolio Solutions}, l'outil SAA de Generali).
+    \item \highlight{Fil rouge mathématique} : contrôler la \highlight{propagation d'erreur} le long de la chaîne \emph{filtre $\to$ générateur $\to$ proxy $\to$ contrôle} — c'est ce qui unifie les trois axes en une seule thèse, et non trois projets juxtaposés.
   \end{itemize}
 
-  {\footnotesize Fonction d'utilité \highlight{multi-dimensionnelle} : rendement, \emph{carry}, matching ALM, liquidité, SCR. Le TPA permet d'\highlight{élargir cette fonction d'utilité} au-delà du seul rendement — là où les fonds souverains (Future Fund, CPP) l'appliquent au rendement total, Generali en adapte la logique au \highlight{bilan assurantiel}.}
+  {\footnotesize Fonction d'utilité \highlight{multi-dimensionnelle} : rendement, \emph{carry}, matching ALM, liquidité, SCR. Le TPA permet d'\highlight{élargir cette fonction d'utilité} au-delà du seul rendement — là où les fonds souverains (Future Fund, CPP) l'appliquent au rendement total, Generali en adapte la logique au \highlight{bilan assurantiel}. Cette utilité multi-objectifs se formalise comme une \highlight{mesure de risque shortfall multivariée}, réductible à un problème unidimensionnel. \source{Doldi, Frittelli, Rosazza Gianin 2023}}
 \end{frame}
 
 \begin{frame}[shrink=15]{Vision cible pour Generali France}
@@ -121,42 +123,47 @@
   {\footnotesize \highlight{Idée directrice :} étendre le TPA au passif et piloter le bilan par facteurs sous contrainte de capital, plutôt que par silo d'actifs.}
 \end{frame}
 
-\begin{frame}[shrink=15]{Axe 1: modéliser les dépendances selon le régime}
+\begin{frame}[shrink=20]{Axe 1: génération conditionnelle au régime, avec garanties}
   \begin{itemize}
     \item Identifier en temps réel le \highlight{régime macro-financier} via un filtre séquentiel (SMC).
-    \item Simuler les facteurs TPA conditionnellement au régime, avec dépendances de queue non linéaires: d'abord un modèle génératif flexible (GAN), puis un modèle à \highlight{garanties de convergence} (SGM, distance de Wasserstein).
+    \item Simuler les facteurs TPA conditionnellement au régime, avec dépendances de queue non linéaires: d'abord un modèle génératif flexible (GAN), puis un modèle à \highlight{garanties de convergence} fondé sur le transport optimal entropique — \highlight{ponts de Schrödinger à sauts} capturant queues épaisses, sauts et changements de régime que les modèles purement diffusifs manquent. \source{De Marco, Pham, Zanni 2026}
     \item Valider les dépendances par \highlight{tests de copules} $\Rightarrow$ auditabilité réglementaire.
+    \item Lire les dépendances entre facteurs et entités comme un \highlight{réseau} (contagion, mesures de type DebtRank) pour le risque systémique en environnement dégradé. \source{Bardoscia et al.\ 2021}
     \item Traiter le \highlight{retard de valorisation des actifs privés} (\emph{valuation lag}) et la \highlight{stochasticité réelle des trajectoires économiques}, masquée par le lissage comptable — l'enjeu est de réconcilier perception comptable et réalité économique du risque.
   \end{itemize}
 
-  \vspace{0.15cm}
+  \vspace{0.1cm}
+  {\footnotesize \highlight{Contribution théorique visée :} bornes de convergence ($W_2$) de la génération conditionnelle lorsque le régime est \emph{estimé} — propager l'erreur d'inférence du filtre dans la borne, cas ouvert dans la littérature.}
+
   \begin{block}{Livrable métier (module GPS \textemdash{} \textit{factor engine})}
     Un moteur de scénarios réalistes pour la SAA et le TPA, plus un \highlight{scénario central} (médoïde) pour les comités et le budget, intégré nativement dans \highlight{GPS}.
   \end{block}
 \end{frame}
 
-\begin{frame}[shrink=10]{Axe 2: obtenir un proxy SCR rapide et exploitable}
+\begin{frame}[shrink=15]{Axe 2: proxy SCR rapide, avec bornes d'erreur contrôlées}
   \begin{itemize}
-    \item Apprendre un proxy supervisé du \highlight{SCR} (réseau de neurones) à partir des facteurs, du régime et des états passif, dont le lag des actifs privés.
+    \item Apprendre un proxy supervisé du \highlight{SCR} (réseau de neurones) à partir des facteurs, du régime et des états passif, dont le lag des actifs privés. Référence et validation par \highlight{simulation imbriquée / Monte Carlo multi-niveaux}. \source{Bourgey 2020}
     \item \highlight{Pondération adaptative}: la précision est concentrée là où elle compte, près du seuil réglementaire et en régime de stress, avec des bornes d'erreur par régime.
     \item Passer de \highlight{plusieurs heures à moins de 5\,ms} par évaluation.
     \item Intégrer le proxy comme \highlight{contrainte de capital explicite} dans l'optimisation, pas seulement comme objet de reporting.
   \end{itemize}
 
-  \vspace{0.2cm}
+  {\footnotesize \highlight{Contribution théorique visée :} analyse d'erreur d'un estimateur imbriqué \emph{avec biais de lissage} (lag des actifs privés), qui sort des hypothèses standard du multi-niveaux — bornes de généralisation par régime.}
+
   \begin{block}{Livrable métier (module GPS \textemdash{} \textit{SCR proxy})}
     Un SCR quasi instantané, utilisable dans des boucles de décision, d'allocation et de couverture, exposé comme service au sein de \highlight{GPS}.
   \end{block}
 \end{frame}
 
-\begin{frame}{Axe 3: décider conjointement allocation et couverture}
+\begin{frame}[shrink=10]{Axe 3: politique jointe allocation–couverture (contrôle stochastique)}
   \begin{itemize}
-    \item Optimiser conjointement les \highlight{expositions factorielles} et les \highlight{stratégies de couverture} (overlays taux, inflation, equity) apprises sous contraintes de bilan.
-    \item \highlight{Identifier automatiquement l'objectif dominant} par portefeuille (duration, inflation, carry, efficacité en capital\ldots).
+    \item Formuler la décision comme un \highlight{problème de contrôle stochastique} sous \highlight{contrainte de risque dynamique} (mesures time-consistent, caractérisation \highlight{BSDE}, séparation en fonds) ; le \highlight{deep hedging} sert de \emph{schéma numérique} d'approximation, pas de boîte noire. \source{Moreno-Bromberg, Pirvu, Réveillac 2013}
+    \item \highlight{Identifier automatiquement l'objectif dominant} par portefeuille via la \highlight{contribution marginale au capital} (allocation d'Euler/gradient, cas convexe non différentiable). \source{Centrone, Rosazza Gianin 2025}
     \item Arbitrer sous contraintes de capital (proxy SCR), de liquidité et d'engagements irrévocables des actifs privés, pour réduire le \highlight{risque de queue} du bilan (CVaR du déficit).
   \end{itemize}
 
-  \vspace{0.2cm}
+  {\footnotesize \highlight{Contribution théorique visée :} caractérisation de la politique jointe quand la contrainte est un \emph{proxy estimé} (axe 2) et la dépendance \emph{à changement de régime} (axe 1), avec actifs irrévocables — hors du cadre de Réveillac (2013).}
+
   \begin{block}{Livrable métier (module GPS \textemdash{} \textit{allocator})}
     Une \highlight{fonction de réaction d'allocation}: un plan what-if calculé ex ante, avec déclenchement explicite, intégré à \highlight{GPS} et connecté à l'interface d'exécution GenAM.
   \end{block}
