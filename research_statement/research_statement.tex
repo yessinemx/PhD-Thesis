@@ -496,48 +496,6 @@ episode.
 
 
 % ================================================================
-\section{Scientific Risks and Mitigation}
-% ================================================================
-
-The programme is ambitious; its main scientific and operational risks have been
-anticipated, and each axis is designed with a fallback that preserves the
-overall contribution.
-
-\begin{tabularx}{\linewidth}{@{}p{4.4cm}>{\centering\arraybackslash}p{1cm}>{\raggedright\arraybackslash}X@{}}
-\toprule
-\textbf{Risk} & \textbf{Lik.} & \textbf{Mitigation / fallback} \\
-\midrule
-cGAN mode collapse or unstable training (Axis~1)
-& Med.
-& The CVAE and conditional SGM are trained in parallel as substitutes;
-  the SGM enjoys formal $W_2$ guarantees and is the primary fallback if
-  adversarial training fails. \\
-\addlinespace
-Conditional $W_2$ bound not provable in full generality (Axis~1)
-& Med.
-& A partial result under piecewise log-concavity (Gaussian-mixture regimes,
-  following Gentiloni-Silveri \& Ocello, 2025) already covers the practically
-  relevant multi-regime case. \\
-\addlinespace
-Limited access to granular BEL / private-asset data
-& Med.
-& The actuarial design-of-experiment is augmented synthetically via TabDDPM;
-  the proxy is validated on historical crises (2008, 2020, 2022). \\
-\addlinespace
-Proxy accuracy degrades in extreme stress zones (Axis~2)
-& Low
-& Adaptive sample weighting concentrates training on decision-relevant tails;
-  MLMC control variates (Bourgey, 2020) bound the residual $L^2$ error. \\
-\addlinespace
-MFG equilibrium existence / uniqueness (Axis~3)
-& Med.
-& Monotone MFG (Lasry \& Lions, 2007) ensures uniqueness under mild
-  convexity conditions; deep Galerkin methods provide a scalable numerical
-  fallback. \\
-\bottomrule
-\end{tabularx}
-
-% ================================================================
 \section{Timeline (36 Months)}
 % ================================================================
 

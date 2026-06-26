@@ -5,7 +5,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[french]{babel}
 \usepackage{geometry}
-\geometry{top=0.8cm,bottom=2.5cm,left=2.5cm,right=2.5cm}
+\geometry{top=0.8cm,bottom=2.5cm,left=1.8cm,right=1.8cm}
 \usepackage{lmodern}
 \usepackage{microtype}
 \usepackage{parskip}
@@ -79,6 +79,11 @@ Investissements} de Generali France, placée sous la responsabilité de
 direction pilote l'allocation stratégique du bilan de Generali France dans le
 cadre de Solvabilité~II, en s'appuyant notamment sur l'outil propriétaire du
 Groupe, \textbf{GPS} (\textit{Group Portfolio Solutions}).
+Elle est organisée en deux équipes complémentaires : l'équipe \textbf{SAA}
+(Allocation Stratégique d'Actifs), dédiée à la recherche quantitative et à
+l'optimisation du bilan, et l'équipe \textbf{Pilotage}, chargée du suivi
+opérationnel des allocations et de la coordination avec Generali Asset
+Management (GenAM).
 
 % ================================================================
 \section{Équipe d'accueil : Allocation Stratégique d'Actifs (SAA)}
@@ -94,6 +99,9 @@ optimisation de portefeuille sous contraintes réglementaires.
   \item \textbf{Directeur des Investissements :} Cédrik d'Aviau de Ternay.
   \item \textbf{Responsable scientifique (Encadrant industriel) :}
         Mamy Ramamonjisoa, membre de l'équipe SAA.
+  \item \textbf{Membres de l'équipe SAA :}
+        Teddy Vaurs, Mohamed Koudiraty, Cesare Mele ;
+        Raphaël Konan (consultant associé).
   \item \textbf{Doctorant CIFRE (candidat) :} Yassine Mannai.
 \end{itemize}
 
@@ -108,14 +116,24 @@ Direction des Investissements.  Elle est chargée de :
   \item \textbf{Pilotage stratégique du bilan :} construction et révision de
         l'allocation stratégique d'actifs dans le cadre de Solvabilité~II, via
         l'outil propriétaire GPS (\textit{Group Portfolio Solutions}).
-  \item \textbf{Modélisation des risques :} développement et maintenance du
-        générateur de scénarios économiques (ESG), calcul du capital réglementaire
-        (SCR) par simulation imbriquée (LSMC), et optimisation actif-passif (ALM).
+  \item \textbf{Stratégies de couverture :} étude et mise en \oe{}uvre des
+        couvertures de portefeuille en scénario de stress, en lien avec les
+        brokers et Generali Asset Management (GenAM).
   \item \textbf{Recherche et innovation :} intégration des approches de la
-        finance quantitative contemporaine (modèles génératifs, apprentissage par
-        renforcement, proxy ML) dans les processus d'allocation et de couverture.
-  \item \textbf{Coordination opérationnelle :} transmission des instructions de
-        réallocation à Generali Asset Management (GenAM) et suivi de l'exécution.
+        finance quantitative contemporaine (modèles génératifs, proxy ML)
+        dans les processus d'allocation, en vue notamment d'embarquer des
+        modèles légers et efficaces directement dans la boucle d'optimisation.
+  \item \textbf{Coordination multi-équipes :}
+  \begin{itemize}[leftmargin=1.4em,itemsep=0pt]
+    \item \textit{Équipe Pilotage} --- définition des bornes d'allocation par
+          classe d'actifs et suivi de l'exécution via GenAM ;
+    \item \textit{Direction des Risques} --- transmission des besoins de calcul
+          SCR et intégration des résultats dans les optimisations ;
+    \item \textit{Équipe Plan \& Reporting} --- accès aux bases comptables pour
+          la calibration des modèles ;
+    \item \textit{Équipe ALM} --- projections actif-passif nécessaires aux
+          simulations de scénarios à long terme.
+  \end{itemize}
 \end{itemize}
 
 % ================================================================
@@ -136,25 +154,17 @@ Direction des Investissements.  Elle est chargée de :
 \subsection{Contexte et motivation industrielle}
 % ----------------------------------------------------------------
 
-La gestion du risque de dépendance entre facteurs économiques dans un contexte
-de changements de régime constitue un enjeu croissant pour les assureurs.
-L'épisode de 2022 --- au cours duquel la corrélation entre actions et
-obligations s'est inversée simultanément sur tous les marchés --- a révélé les
-limites des approches classiques d'allocation par classes d'actifs et motive le
-développement d'une approche \textbf{factorielle, dynamique et intégrée} au
-sein de l'équipe SAA.
-
-Les outils actuels de l'équipe souffrent de quatre limitations structurelles :
-(i) des corrélations calibrées sur des moyennes historiques, aveugles aux
-ruptures de régime ; (ii) un proxy LSMC polynomial précis uniquement dans la
-région de calibration, dégradé précisément dans les zones de stress les plus
-critiques ; (iii) des actifs privés à valorisation lissée introduisant un biais
-de sous-estimation du risque réel ; (iv) l'absence de modèle de contagion pour
-les vagues de rachats corrélés observées en 2022.
-
-La thèse vise à fournir les fondations quantitatives permettant de rendre
-opérationnel le \textbf{Total Portfolio Approach (TPA)} pour un assureur sous
-Solvabilité~II.
+L'épisode de 2022 --- inversion simultanée de la corrélation
+actions/obligations sur l'ensemble des marchés --- a révélé quatre
+limitations structurelles des outils SAA actuels :
+(i)~corrélations aveugles aux ruptures de régime ;
+(ii)~calcul du SCR (Direction des Risques, LSMC, plusieurs heures)
+incompatible avec des optimisations dynamiques et scalables sur
+multiples scénarios ;
+(iii)~actifs privés à valorisation lissée biaisant le risque réel ;
+(iv)~absence de modèle de contagion pour les rachats corrélés.
+La thèse vise à rendre opérationnel le \textbf{Total Portfolio Approach (TPA)}
+pour un assureur sous Solvabilité~II.
 
 % ----------------------------------------------------------------
 \subsection{Axes de recherche}
@@ -171,12 +181,15 @@ Solvabilité~II.
         et établissement de garanties de convergence Wasserstein-2.
 
   \item \textbf{Proxy de SCR supervisé pour la décision dynamique (Axe~2).}
-        Construction d'un proxy différentiable du capital réglementaire (SCR)
-        exprimé en fonction des facteurs TPA, du régime courant et des états
-        des passifs (dont les lags de NAV d'actifs privés), offrant un temps
-        d'inférence inférieur à 10~ms et des bornes d'erreur contrôlées
-        par régime --- condition nécessaire à son intégration comme contrainte
-        explicite dans une boucle d'optimisation dynamique.
+        Construction d'un \textit{tiny model} différentiable du capital
+        réglementaire (SCR), conçu pour s'embarquer directement dans la boucle
+        d'optimisation de l'équipe SAA --- sans dépendre des recalculs complets
+        de la Direction des Risques (Prophet/MoSes, plusieurs heures).
+        Exprimé en fonction des facteurs TPA, du régime courant et des états
+        des passifs (dont les lags de NAV d'actifs privés), il offre une
+        inférence inférieure à 10~ms avec des bornes d'erreur contrôlées ---
+        condition nécessaire pour scaler vers des optimisations conjointes
+        dynamiques sur de multiples scénarios de marché simultanés.
 
   \item \textbf{Rachats en champ moyen et allocation de capital (Axe~3).}
         Modélisation de la dynamique de rachat des assurés comme un équilibre
