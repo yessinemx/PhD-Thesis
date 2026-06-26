@@ -53,8 +53,8 @@
 {\Large\bfseries Research Statement}\\[4pt]
 {\large\bfseries CIFRE PhD --- CREST - IMT, Generali France}\\[8pt]
 {\normalsize\itshape
-Regime-Conditional Factor Dynamics, Functional Capital Proxies\\
-and Optimal Stochastic Control for Insurance Portfolio Management}
+Regime-Conditional Generative Models, Volterra Capital Proxies\\
+and Mean Field Game Lapse Dynamics for Insurance Asset Allocation}
 \end{center}
 
 \medskip
@@ -84,9 +84,9 @@ with certified $W_2$ guarantees under online regime inference}, coupled to a
 \emph{differentiable functional capital proxy}, to enable a fully dynamic,
 capital-aware Total Portfolio Approach for a life insurer under Solvency~II.
 The three axes form a single closed control loop: a certified scenario
-generator (Axis~1) feeds a fast differentiable SCR proxy (Axis~2), which
-becomes the capital constraint of a joint allocation-and-hedging policy
-(Axis~3).
+generator (Axis~1) feeds a fast differentiable SCR proxy (Axis~2), whose
+gradient constraint drives the MFG-based lapse modelling and capital
+allocation programme (Axis~3).
 \end{quote}
 
 % ================================================================
@@ -164,7 +164,7 @@ factors (surrender, longevity, yield-curve/BEL interactions), and every
 decision must internalise a capital cost. Existing actuarial tools address none
 of this jointly; this thesis fills the gap along three coupled axes:
 regime-conditional factor simulation (Axis~1), fast capital proxy (Axis~2),
-and joint allocation-hedging policy (Axis~3).
+and MFG-based lapse modelling and capital allocation (Axis~3).
 
 % ================================================================
 \section{Research Overview}
@@ -182,15 +182,15 @@ and joint allocation-hedging policy (Axis~3).
 ]
 \node[ax] (a1) {\textbf{Axis~1}\\Regime-conditional\\generative model\\\scriptsize(HMM-SMC + GAN/VAE/SGM)};
 \node[ax,right=17mm of a1] (a2) {\textbf{Axis~2}\\Differentiable\\SCR proxy\\\scriptsize(Volterra functional)};
-\node[ax,right=17mm of a2] (a3) {\textbf{Axis~3}\\Joint allocation\\\& hedging policy\\\scriptsize(stochastic control)};
+\node[ax,right=17mm of a2] (a3) {\textbf{Axis~3}\\Network lapse risk\\\& capital allocation\\\scriptsize(MFG on network)};
 \draw[arr] (a1) -- node[lbl,above]{certified\\scenarios ($W_2$)} (a2);
 \draw[arr] (a2) -- node[lbl,above]{capital\\constraint ($\nabla$SCR)} (a3);
 \draw[arr] (a3.south) -- ++(0,-7mm) -| node[lbl,below,pos=0.25]{realised regime / rebalancing feedback} (a1.south);
 \end{tikzpicture}
 \caption{The three axes form a single closed capital-aware control loop:
 certified regime-conditional scenarios feed a fast differentiable capital
-proxy, which becomes the explicit constraint of the joint allocation and
-hedging policy; realised regimes feed back into the generator.}
+proxy, whose gradient drives the capital allocation programme;
+realised regimes feed back into the generator.}
 \label{fig:pipeline}
 \vspace{4pt}
 
@@ -205,7 +205,7 @@ Copulas (Sklar, Fermanian)                   & \ding{55} & \ding{55} & \ding{51}
 LSMC proxy (Krah et al.)                     & \ding{55} & \ding{55} & \ding{51} & \ding{51} \\
 GAN/VAE time-series (Wiese, Yoon)            & \ding{55} & \ding{51} & \ding{55} & \ding{55} \\
 Score-based models (Ocello et al.)           & \ding{55} & \ding{51} & \ding{51} & \ding{55} \\
-Deep hedging (Buehler et al.)               & \ding{55} & \ding{51} & \ding{55} & \ding{55} \\
+Classical lapse models (actuarial)          & \ding{55} & \ding{55} & \ding{55} & \ding{51} \\
 \midrule
 \textbf{This thesis (Axes 1--3)}            & \ding{51} & \ding{51} & \ding{51} & \ding{51} \\
 \bottomrule
@@ -276,13 +276,6 @@ Copulas therefore serve here exclusively as a \emph{validation tool}: the
 conditional tail-dependence coefficient $\lambda_k$ is estimated and tested
 via Fermanian's specification tests to validate generative outputs, not to
 generate them.
-
-\textit{Financial networks and correlation structure.}
-Bardoscia et al.\ (2021) show that asset correlation matrices exhibit community
-structure and spectral properties amenable to graph-theoretic analysis,
-motivating an optional graph-neural-network (GNN) encoder in the Axis~1
-generator to capture non-linear pairwise interactions beyond the covariance
-matrix.
 
 \noindent\textbf{Identified gaps.}
 Neither conditional GANs, VAEs nor SGMs have been applied to the joint
@@ -423,75 +416,83 @@ is exported as a differentiable module ($\nabla_\mathbf{F}\widehat{\mathrm{SCR}}
 available) for direct use as an explicit constraint in the Axis~3 programme.
 
 % ----------------------------------------------------------------
-\subsection{Axis~3 --- Stochastic Control: Joint Allocation and Deep Hedging}
+\subsection{Axis~3 --- Mean Field Game Network Model for Lapse Risk
+  and Capital Allocation}
 % ----------------------------------------------------------------
 
 \noindent\textbf{Research question.}
 \begin{rqthm}
-How to learn a joint stochastic control policy optimising TPA factor exposures
-and hedging positions under a differentiable SCR capital constraint, with
-regime-adaptive objectives automatically derived from the dominant risk factor?
+How to model policyholder surrender dynamics as a mean field game on a
+heterogeneous policy network conditioned on the macroeconomic regime of
+Axis~1, derive the regime-conditional aggregate lapse process and its
+path-dependent impact on the SCR proxy of Axis~2, and solve the resulting
+capital allocation problem under a Solvency~II shortfall constraint?
 \end{rqthm}
 
 \noindent\textbf{State of the art.}
 
-\textit{Deep reinforcement learning for ALM.}
-Wekwete (2023) demonstrated the applicability of Deep RL (PPO, SAC) to
-insurance ALM in stochastic environments, establishing the feasibility of
-learning allocation policies in high-dimensional state spaces under regulatory
-constraints.
+\textit{Classical lapse models.}
+Current actuarial practice models surrender rates as deterministic functions
+of the interest-rate spread, calibrated on historical cohorts (Kochanski,
+2010 style). Dynamic models incorporate rate-sensitivity but assume
+independence across policyholders --- ignoring social contagion. In 2022,
+French life insurers observed correlated surrender waves far in excess of
+individual rational behaviour, motivating a network-contagion approach.
 
-\textit{Deep hedging.}
-Buehler et al.\ (2019) introduced deep hedging: learning a hedging strategy
-via a neural network minimising a convex risk measure without market
-completeness assumptions. The approach has been extended to extreme risk
-(Carbonneau, 2021; Cao et al., 2023) and multi-asset portfolios under stress
-regimes, and provides the algorithmic backbone for the joint
-allocation-hedging objective of Axis~3.
+\textit{Mean field games.}
+Lasry \& Lions (2007) and Carmona \& Delarue (2018) establish MFG theory
+for large populations of interacting agents: each agent solves an HJB
+equation whose coefficients depend on the aggregate distribution $m_t$
+(mean field), yielding a Nash equilibrium characterised by a coupled
+forward-backward PDE system. MFGs have been applied to systemic risk in
+banking (Carmona et al., 2015) but not to insurance lapse contagion.
 
-\textit{Stochastic control under dynamic risk constraints.}
-R\'{e}veillac (2013) studies CRRA utility maximisation subject to dynamic
-risk constraints on trading strategies, characterised by quadratic BSDEs.
-Within the class of time-consistent distortion risk measures a three-fund
-separation result holds --- directly informing the stochastic control
-formulation where the joint policy operates under a dynamic SCR constraint
-generated by a general class of risk measures.
+\textit{Financial network contagion.}
+Bardoscia et al.\ (2021) establish that network topology --- degree
+distribution, community structure, contagion thresholds --- determines
+systemic amplification. Applied to a policyholder network (nodes = contracts,
+edges = social or geographic proximity), the same framework governs surrender
+cascades.
 
-\textit{Shortfall systemic risk measures and capital allocation.}
-Rosazza Gianin et al.\ (2024) develop a theory of shortfall systemic risk
-measures with axiomatic capital allocation rules via a generalised
-collapse-to-the-mean framework. Their results connect to the
-distortion-based capital constraint of Axis~3 and motivate the use of
-$\mathrm{CVaR}_{0.99}$ of the capital deficit as the hedging objective.
+\textit{Stochastic control and capital allocation.}
+R\'{e}veillac (2013) and Pham (2009) provide the BSDE and HJB framework
+for optimal allocation under dynamic risk constraints. Rosazza Gianin et al.\
+(2024) supply axiomatic capital allocation rules under shortfall risk measures,
+directly applicable once the MFG lapse process is embedded as a liability-side
+state variable.
 
 \noindent\textbf{Identified gaps.}
-No existing framework jointly learns allocation and hedging under: (i)~a
-regime-conditional, non-linear dependence model; (ii)~a fast, differentiable
-capital constraint; (iii)~private asset engagement restrictions; and (iv)~an
-automatically identified portfolio-specific objective function. The full
-coupling of Axes~1 and~2 into a stochastic control loop is the contribution
-of Axis~3.
+No existing model treats policyholder lapse as a MFG equilibrium on a
+network conditioned on the macroeconomic regime. No framework connects the
+aggregate lapse process to a differentiable SCR proxy or to a Solvency~II
+capital allocation programme.
 
 \noindent\textbf{Proposed approach.}
-A latent objective map $\psi_t = g_\eta(\mathbf{F}_t,z_t,\mathbf{P}_t,
-\widehat{\mathrm{SCR}}_t)$ identifies the dominant factor objective per
-portfolio and regime. The agent state is
-$s_t = (\mathbf{F}_t,\hat{C}_{z_t},z_t,\mathbf{P}_t,\widehat{\mathrm{SCR}}_t)$
-and the action $(\mathbf{w}_t,\mathbf{h}_t)$ is the joint
-allocation-hedging pair. The policy $\pi$ solves
+Each policyholder $i$ is a MFG agent with in-force indicator $x_i(t)$ and
+value function $V^i$ satisfying
 \begin{equation}
-  \max_\pi\;\mathbb{E}_\pi\!\left[\sum_{t=0}^T
-  r_{\psi_t}(\mathbf{w}_t,\mathbf{h}_t,\mathbf{F}_{t+1})
-  - \mathcal{P}_t \right]
-  \quad\text{s.t.}\quad\widehat{\mathrm{SCR}}_t \le \bar{C},
-\label{eq:obj}
+  -\partial_t V^i
+  = \min_{\alpha_i}\Bigl[\ell(x_i,\alpha_i,m_t,z_t)
+    + \mathcal{L}^{\alpha_i}V^i\Bigr],
+  \quad m_t = \tfrac{1}{N}\textstyle\sum_j\delta_{x_j(t)},
+\label{eq:mfg}
 \end{equation}
-where $r_{\psi_t}$ is the regime-and-portfolio-specific objective and
-$\mathcal{P}_t$ aggregates hedging cost, turnover and new-illiquid-commitment
-penalties. The hedging component targets
-$\mathrm{CVaR}_{0.99}$ reduction of the capital deficit, with the
-regime-conditional factor dependence of Axis~1 embedded directly in the
-simulation environment.
+where $z_t$ is the regime from Axis~1 and local interaction terms encode
+the network topology. The MFG equilibrium yields a regime-conditional
+aggregate lapse rate $\lambda^*(t,z_t,m_t)$ that enters the liability
+state vector $\mathbf{P}_t$ of the Axis~2 proxy. The capital allocation
+problem then reads
+\begin{equation}
+  \min_{\mathbf{w}}\;\mathrm{CVaR}_{0.99}(\Delta\mathrm{NAV}_T)
+  \quad\text{s.t.}\quad
+  \widehat{\mathrm{SCR}}\!\bigl(\mathbf{F}_t,z_t,\mathbf{P}_t(\lambda^*)\bigr)
+  \le \bar{C},
+\label{eq:alloc}
+\end{equation}
+where the differentiable proxy of Axis~2 enables gradient-based resolution
+of~\eqref{eq:alloc}. The MFG system is solved via deep Galerkin methods
+(physics-informed NNs) and validated on the 2022 French surrender-wave
+episode.
 
 
 % ================================================================
@@ -528,10 +529,11 @@ Proxy accuracy degrades in extreme stress zones (Axis~2)
 & Adaptive sample weighting concentrates training on decision-relevant tails;
   MLMC control variates (Bourgey, 2020) bound the residual $L^2$ error. \\
 \addlinespace
-RL policy instability / non-convergence (Axis~3)
+MFG equilibrium existence / uniqueness (Axis~3)
 & Med.
-& The differentiable proxy enables direct gradient-based control as a
-  fallback to model-free RL; deep hedging provides a validated warm start. \\
+& Monotone MFG (Lasry \& Lions, 2007) ensures uniqueness under mild
+  convexity conditions; deep Galerkin methods provide a scalable numerical
+  fallback. \\
 \bottomrule
 \end{tabularx}
 
@@ -543,16 +545,17 @@ RL policy instability / non-convergence (Axis~3)
   \item \textbf{Year~1 --- Axis~1.}
         Bloomberg factor database with NAV lags; online HMM-SMC calibration;
         regime-conditional GAN/CVAE validated on 2008/2020/2022 crises.
-        \emph{Submission: Journal of Multivariate Analysis / Finance \& Stochastics.}
+        \ Publication in mathematical finance / statistics.
   \item \textbf{Year~2 --- Axis~2.}
         Actuarial design-of-experiment (Prophet/MoSes) with TabDDPM
         augmentation; SCR proxy architecture comparison and Volterra $L^2$
         bounds; differentiable proxy embedded as optimisation constraint.
-        \emph{Submission: Insurance: Mathematics and Economics.}
+        \ Publication in actuarial science / insurance mathematics.
   \item \textbf{Year~3 --- Axis~3.}
-        Joint allocation-and-hedging agent with automatic objective
-        identification; full three-axis coupling; multi-regime out-of-sample
-        backtesting; defence. \emph{Submission: Quantitative Finance / JFQA.}
+        MFG-network lapse calibration on the 2022 French surrender-wave
+        episode; full three-axis coupling; capital allocation out-of-sample
+        backtesting; defence.
+        \ Publication in quantitative finance.
 \end{itemize}
 
 % ================================================================
@@ -577,41 +580,169 @@ platform GPS:
         feasible and the capital constraint analytically tractable as an
         explicit gradient-available term.
 
-  \item \textbf{Module 3 (Axis~3)} replaces the annual, siloed allocation
-        process with a dynamic joint policy that simultaneously optimises TPA
-        factor exposures and hedging positions under an automatically
-        identified portfolio-specific objective and an explicit SCR constraint.
+  \item \textbf{Module 3 (Axis~3)} replaces deterministic lapse tables
+        with a mean field game equilibrium on the policyholder network,
+        delivering a regime-conditional aggregate lapse process that feeds
+        directly into the SCR proxy and enables a capital allocation
+        programme with explicit Solvency~II guarantees.
 \end{itemize}
 
 Beyond the industrial deliverables, the thesis makes three mathematically
 self-contained contributions: the extension of $W_2$ convergence theory to
 regime-conditional score-based models under sequential estimation error; the
 formalisation of private asset valuation bias through the theory of Volterra
-processes and path-dependent risk measures; and the characterisation of
-optimal stochastic control policies under dynamic, non-Markovian capital
-constraints derived from a general class of shortfall risk measures. Together,
+processes and path-dependent risk measures; and the characterisation of policyholder surrender equilibria as mean field
+games on network-structured populations with regime-conditional interaction
+kernels, and their integration into Solvency~II capital allocation programmes
+via the differentiable SCR proxy of Axis~2. Together,
 these contributions establish rigorous foundations for a new generation of
 quantitative tools in insurance balance sheet management --- tools that are
 simultaneously \emph{theoretically grounded}, \emph{computationally efficient},
 \emph{interoperable} and \emph{regulatory-compliant}.
-
-\medskip
-\noindent\textbf{Beyond the three years.}
-The certified-generation / differentiable-proxy / stochastic-control triptych
-is deliberately generic. The same architecture extends naturally to dynamic
-ORSA projection, climate stress-testing under regime-dependent transition
-scenarios, and IFRS~17 risk-adjustment computation --- opening a longer-term
-research programme on \emph{certified, capital-aware decision systems} for the
-insurance balance sheet.
 
 % ================================================================
 \section*{References}
 % ================================================================
 \renewcommand{\section}[2]{}
 
-\begin{thebibliography}{30}
+\begin{thebibliography}{26}
 
 \bibitem{abijabar2019}
+Abi Jaber, E., Larsson, M., \& Pulido, S. (2019).
+Affine Volterra processes.
+\emph{The Annals of Applied Probability}, 29(6), 3155--3200.
+
+\bibitem{bardoscia2021}
+Bardoscia, M., Barucca, P., Battiston, S., Caccioli, F., Cimini, G.,
+Garlaschelli, D., Saracco, F., Squartini, T., \& Caldarelli, G. (2021).
+The physics of financial networks.
+\emph{Nature Reviews Physics}, 3(7), 490--507.
+
+\bibitem{bourgey2020}
+Bourgey, F. (2020).
+\emph{Stochastic approximations for financial risk computations}.
+PhD thesis.
+
+\bibitem{caia2024}
+CAIA Association. (2024).
+\emph{Innovation Unleashed: The Rise of Total Portfolio Approach}.
+
+\bibitem{carmona2018}
+Carmona, R., \& Delarue, F. (2018).
+\emph{Probabilistic Theory of Mean Field Games with Applications}.
+Springer.
+
+\bibitem{chen2018}
+Chen, R.T.Q., Rubanova, Y., Bettencourt, J., \& Duvenaud, D. (2018).
+Neural ordinary differential equations.
+\emph{Advances in Neural Information Processing Systems}, 31.
+
+\bibitem{chopin2020}
+Chopin, N., \& Papaspiliopoulos, O. (2020).
+\emph{An Introduction to Sequential Monte Carlo}. Springer.
+
+\bibitem{demarco2025}
+De Marco, S., Pham, H., \& Zanni, D. (2025).
+Schr\"{o}dinger bridges with jumps for time series generation.
+\emph{arXiv preprint arXiv:2602.20011}.
+
+\bibitem{eleuch2019}
+El Euch, O., \& Rosenbaum, M. (2019).
+The characteristic function of rough Heston models.
+\emph{Mathematical Finance}, 29(1), 3--38.
+
+\bibitem{fermanian2013}
+Fermanian, J.-D. (2013).
+An overview of the goodness-of-fit test problem for copulas.
+In \emph{Copulae in Mathematical and Quantitative Finance},
+Springer, 61--89.
+
+\bibitem{fermanian2022}
+Fermanian, J.-D. (2022).
+Conditional copulas, dependence modeling and the role of conditioning.
+\emph{Annals of Statistics}.
+
+\bibitem{ocello2025icml}
+Gentiloni-Silveri, M., \& Ocello, A. (2025).
+Beyond log-concavity and score regularity: Improved convergence bounds
+for score-based generative models in $W_2$-distance.
+\emph{Forty-Second International Conference on Machine Learning (ICML)}.
+
+\bibitem{hamilton1989}
+Hamilton, J.D. (1989).
+A new approach to the economic analysis of nonstationary time series.
+\emph{Econometrica}, 57(2), 357--384.
+
+\bibitem{huber2022}
+Huber, M., \& Schmocker, B. (2022).
+A neural network approach to efficient valuation of large portfolios
+of variable annuities.
+\emph{Insurance: Mathematics and Economics}, 105, 96--116.
+
+\bibitem{kotelnikov2023}
+Kotelnikov, A., Baranchuk, D., Rubachev, I., \& Babenko, A. (2023).
+TabDDPM: Modelling Tabular Data with Diffusion Models.
+\emph{International Conference on Machine Learning (ICML)}.
+
+\bibitem{krah2018}
+Krah, A.-S., Nikolic, Z., \& Korn, R. (2018).
+A Least-Squares Monte Carlo framework in proxy modeling of life
+insurance companies.
+\emph{Risks}, 6(2), 62.
+
+\bibitem{lasry2007}
+Lasry, J.-M., \& Lions, P.-L. (2007).
+Mean field games.
+\emph{Japanese Journal of Mathematics}, 2(1), 229--260.
+
+\bibitem{lipman2022}
+Lipman, Y., Chen, R.T.Q., Ben-Hamu, H., Nickel, M., \& Le, M. (2022).
+Flow Matching for Generative Modeling.
+\emph{International Conference on Learning Representations (ICLR)}.
+
+\bibitem{pham2009}
+Pham, H. (2009).
+\emph{Continuous-Time Stochastic Control and Optimization
+with Financial Applications}. Springer.
+
+\bibitem{reveillac2013}
+R\'{e}veillac, A. (2013).
+CRRA utility maximization under dynamic risk constraints.
+\emph{Mathematical Finance}.
+
+\bibitem{rosazza2024}
+Rosazza Gianin, E., et al.\ (2024).
+Shortfall systemic risk measures, capital allocation rules and
+generalised collapse to the mean: Theory and practice.
+\emph{Working paper}.
+
+\bibitem{sklar1959}
+Sklar, A. (1959).
+Fonctions de repartition a $n$ dimensions et leurs marges.
+\emph{Publications de l'Institut de Statistique de Paris}, 8, 229--231.
+
+\bibitem{ocello2024tmlr}
+Strasman, S., Ocello, A., Boyer, C., Le~Corff, S., \& Lemaire, V. (2024).
+An analysis of the noise schedule for score-based generative models.
+\emph{Transactions on Machine Learning Research (TMLR)}.
+
+\bibitem{thinking_ahead}
+Thinking Ahead Institute. (2025).
+\emph{TPA Report: From Vision to Execution}. WTW / CAIA.
+
+\bibitem{wiese2020}
+Wiese, M., Knobloch, R., Korn, R., \& Kretschmer, P. (2020).
+Quant GANs: Deep generation of financial time series.
+\emph{Quantitative Finance}, 20(9), 1419--1440.
+
+\bibitem{yoon2019}
+Yoon, J., Jarrett, D., \& van der Schaar, M. (2019).
+Time-series generative adversarial networks.
+\emph{Advances in Neural Information Processing Systems}, 32.
+
+\end{thebibliography}
+
+\end{document}
 Abi Jaber, E., Larsson, M., \& Pulido, S. (2019).
 Affine Volterra processes.
 \emph{The Annals of Applied Probability}, 29(6), 3155--3200.
@@ -633,20 +764,7 @@ Deep hedging.
 \emph{Quantitative Finance}, 19(8), 1271--1291.
 
 \bibitem{caia2024}
-CAIA Association. (2024).
-\emph{Innovation Unleashed: The Rise of Total Portfolio Approach}.
 
-\bibitem{cao2023}
-Cao, J., Chen, J., Hull, J., \& Poulos, Z. (2023).
-Deep hedging of derivatives using reinforcement learning.
-\emph{The Journal of Financial Data Science}, 5(1), 10--27.
-
-\bibitem{carbonneau2021}
-Carbonneau, A. (2021).
-Deep hedging of long-term financial derivatives.
-\emph{Insurance: Mathematics and Economics}, 99, 327--340.
-
-\bibitem{chen2018}
 Chen, R.T.Q., Rubanova, Y., Bettencourt, J., \& Duvenaud, D. (2018).
 Neural ordinary differential equations.
 \emph{Advances in Neural Information Processing Systems}, 31.
@@ -688,41 +806,6 @@ Generative adversarial networks.
 \emph{Advances in Neural Information Processing Systems}, 27.
 
 \bibitem{hamilton1989}
-Hamilton, J.D. (1989).
-A new approach to the economic analysis of nonstationary time series.
-\emph{Econometrica}, 57(2), 357--384.
-
-\bibitem{huber2022}
-Huber, M., \& Schmocker, B. (2022).
-A neural network approach to efficient valuation of large portfolios
-of variable annuities.
-\emph{Insurance: Mathematics and Economics}, 105, 96--116.
-
-\bibitem{kotelnikov2023}
-Kotelnikov, A., Baranchuk, D., Rubachev, I., \& Babenko, A. (2023).
-TabDDPM: Modelling Tabular Data with Diffusion Models.
-\emph{International Conference on Machine Learning (ICML)}.
-
-\bibitem{krah2018}
-Krah, A.-S., Nikolic, Z., \& Korn, R. (2018).
-A Least-Squares Monte Carlo framework in proxy modeling of life
-insurance companies.
-\emph{Risks}, 6(2), 62.
-
-\bibitem{lipman2022}
-Lipman, Y., Chen, R.T.Q., Ben-Hamu, H., Nickel, M., \& Le, M. (2022).
-Flow Matching for Generative Modeling.
-\emph{International Conference on Learning Representations (ICLR)}.
-
-\bibitem{nystrup2017}
-Nystrup, P., Madsen, H., \& Lindstrom, E. (2017).
-Dynamic portfolio optimization across hidden market regimes.
-\emph{Quantitative Finance}, 18(1), 83--95.
-
-\bibitem{pham2009}
-Pham, H. (2009).
-\emph{Continuous-Time Stochastic Control and Optimization
-with Financial Applications}. Springer.
 
 \bibitem{reveillac2013}
 R\'{e}veillac, A. (2013).
