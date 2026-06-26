@@ -4,7 +4,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[french]{babel}
 \usepackage{geometry}
-\geometry{top=2.2cm,bottom=2.2cm,left=2.4cm,right=2.4cm}
+\geometry{top=2.2cm,bottom=2.2cm,left=1.8cm,right=1.8cm}
 \usepackage{lmodern}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{booktabs}
@@ -17,7 +17,13 @@
 \hypersetup{colorlinks=false,pdfborder={0 0 0}}
 \usepackage{array}
 \usepackage{microtype}
-
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+\usepackage{pifont}
+\usepackage{makecell}
+\usepackage{caption}
+\usepackage{float}
+\setlength{\emergencystretch}{2.5em}
 % ---------- typography ----------
 \titleformat{\section}
   {\normalsize\bfseries\uppercase}
@@ -31,7 +37,7 @@
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0.4pt}
-\fancyhead[L]{\small\textit{Research Statement --- CIFRE PhD Generali France}}
+\fancyhead[L]{\small\textit{Research Statement --- CIFRE PhD}}
 \fancyhead[R]{\small\textit{Yassine Mannai}}
 \fancyfoot[C]{\small\thepage}
 
@@ -45,15 +51,15 @@
 % ================================================================
 \begin{center}
 {\Large\bfseries Research Statement}\\[4pt]
-{\large\bfseries CIFRE PhD --- CREST, Institut de Mathématiques de Toulouse, Generali France}\\[8pt]
+{\large\bfseries CIFRE PhD --- CREST - IMT, Generali France}\\[8pt]
 {\normalsize\itshape
-Regime-Conditional Factor Dependence, Supervised Capital Proxy,\\
-and Deep Hedging for Insurance Total Portfolio Approach}
+Regime-Conditional Factor Dynamics, Functional Capital Proxies\\
+and Optimal Stochastic Control for Insurance Portfolio Management}
 \end{center}
 
 \medskip
 \noindent
-\begin{tabular}{@{}ll}
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{11.8cm}@{}}
 \textbf{Candidate:}            & Yassine Mannai \\
 \textbf{Contact:}              & \texttt{yassine.mannai@dauphine.eu}
                                  $\;\cdot\;$ +33\,(0)6\,23\,64\,31\,80 \\
@@ -63,554 +69,563 @@ and Deep Hedging for Insurance Total Portfolio Approach}
                                & Anthony R\'{e}veillac (INSA Toulouse, IMT) \\
 \textbf{Industry supervisor:}  & Mamy Ramamonjisoa ---
                                  SAA team, Generali France \\
-\textbf{Investment Division:}  & Cedrik d'Aviau de  Ternay --- Chief Investment                                      Officer, Generali France \\
-\textbf{Start date:}           & October 2026 -- January 2027
+\textbf{Investment Division:}  & Cedrik d'Aviau de Ternay --- Chief Investment Officer, Generali France \\
+\textbf{Start date:}           & January 2027
                                  $\;\cdot\;$ Duration: 36 months
 \end{tabular}
 
 \noindent\rule{\linewidth}{0.8pt}
 
+\medskip
+\noindent\textit{\textbf{Thesis in one sentence.}}
+\begin{quote}\itshape
+This thesis introduces the first \emph{regime-conditional generative framework
+with certified $W_2$ guarantees under online regime inference}, coupled to a
+\emph{differentiable functional capital proxy}, to enable a fully dynamic,
+capital-aware Total Portfolio Approach for a life insurer under Solvency~II.
+The three axes form a single closed control loop: a certified scenario
+generator (Axis~1) feeds a fast differentiable SCR proxy (Axis~2), which
+becomes the capital constraint of a joint allocation-and-hedging policy
+(Axis~3).
+\end{quote}
+
 % ================================================================
 \section{Industrial Context and Motivation}
 % ================================================================
 
-\subsection{Starting point: 2022, a dependence crisis}
+\subsection{The 2022 dependence crisis and the limits of static allocation}
 
-The year 2022 was a major stress test for insurance asset managers. Unlike
-previous crises --- which were essentially isolated shocks on a single asset
-class --- 2022 saw equities and bonds fall simultaneously, inter-asset
-correlations turn positive, and traditional asset-class diversification break
-down entirely. For a life insurer such as Generali France, this episode
-exposed a fundamental structural flaw: Strategic Asset Allocation (SAA) models
-assume stable, linear dependence structures between economic factors, whereas
-the empirical evidence shows that these dependencies reverse abruptly in
-stress regimes.
+The year 2022 was a structural stress test for insurance asset managers: unlike
+earlier single-asset shocks, equities and bonds fell simultaneously and
+diversification broke down. For a life insurer such as Generali France, this
+exposed a structural flaw in Strategic Asset Allocation (SAA), which assumes
+stable, linear dependence between economic factors. The equity/bond correlation
+switched from $-0.3$ (diversifying) to $+0.6$ (concentration risk) within
+weeks --- a regime reversal that fixed-correlation models cannot anticipate.
 
-This observation directly motivates the object of this thesis: \textit{how to
-manage an insurance balance sheet when factor dependence becomes unstable,
-non-linear, and regime-dependent?}
+This motivates the central problem of this thesis:
+\textit{how to characterise and optimally control the solvency position of an insurer
+when the joint dynamics of economic factors are governed by a latent Markov chain
+inducing non-stationary, non-linear dependence structures across regimes?}
 
-\subsection{The current SAA process and its limitations}
+\subsection{Three compounded bottlenecks in the current SAA process}
 
-\noindent\textbf{How the SAA process works today.}
-The current SAA process at Generali France operates in three sequential steps,
-each carrying structural limitations.
-
-\textit{Step 1 --- Economic Scenario Generator (ESG).}
-A proprietary ESG produces thousands of economic trajectories (interest rates,
-credit spreads, equity, real estate, inflation) over a long horizon, calibrated
-on historical data with \textbf{fixed correlations averaged across all
-regimes}. These trajectories feed all downstream actuarial calculations.
-
-\textit{Step 2 --- SCR calculation via nested LSMC.}
-The Solvency Capital Requirement (SCR) is the regulatory capital under
-Solvency~II, defined as the 99.5\% one-year Value-at-Risk of net asset value
-change. Its calculation requires evaluating the Best Estimate of Liabilities
-(BEL) --- the risk-neutral present value of all future policyholder cash flows
---- under each of the 10,000+ real-world scenarios produced by the ESG. Since
-each BEL evaluation requires a nested risk-neutral simulation (typically
-1,000 inner paths), the raw computational cost is
-$10{,}000 \times 1{,}000 = 10$ million simulations. The industry-standard
-solution --- Least-Squares Monte Carlo (LSMC, Krah et al., 2018) --- replaces
-the inner simulation by a polynomial proxy $\hat{V}^L(\mathbf{x}) =
-\sum_k \beta_k \phi_k(\mathbf{x})$ fitted offline on a design-of-experiment.
-Even so, running Prophet / MoSes for a full SCR calculation takes
-\textbf{several hours}, making dynamic optimisation loops computationally
-infeasible.
-
-\textit{Step 3 --- Annual Markowitz optimisation and manual execution.}
-The SCR is treated as a fixed constraint in a mean-variance optimisation over
-asset classes, revised \textbf{once per year}. Rebalancing instructions are
-transmitted \textbf{manually by email or Excel spreadsheet to GenAM}
-(Generali Asset Management, the delegated manager), which then executes trades
-over several days. In addition, the optimisation criterion is fixed
-\textit{ex ante}: there is no automatic identification of the dominant
-portfolio objective --- for example duration control, inflation protection,
-carry harvesting, or capital efficiency --- even though the relevant risk
-factor varies across portfolios and across regimes.
+The SAA process at Generali France runs in three sequential steps, each with
+structural limitations.
+\textbf{(1)~Economic Scenario Generator (ESG)} --- a proprietary ESG produces
+thousands of trajectories (rates, spreads, equity, real estate, inflation)
+calibrated with \textbf{fixed correlations averaged across regimes}, feeding all
+downstream actuarial calculations.
+\textbf{(2)~SCR via nested LSMC} --- the Solvency Capital Requirement, the
+$99.5\%$ one-year VaR of net asset value change, requires the Best Estimate of
+Liabilities (BEL) under $10{,}000+$ scenarios; Least-Squares Monte Carlo
+(LSMC, Krah et al., 2018) replaces the inner simulation by an offline
+polynomial proxy.
+\textbf{(3)~Annual Markowitz optimisation} --- the SCR is a fixed constraint in
+a mean-variance optimisation revised \textbf{once per year}, with no automatic
+identification of the dominant portfolio objective (duration, inflation, carry,
+capital efficiency), even though the relevant factor varies across portfolios
+and regimes.
 
 \medskip
 \noindent\textbf{Four structural limitations.}
 
-\begin{enumerate}[leftmargin=1.8em,itemsep=3pt]
+\begin{enumerate}[leftmargin=1.8em,itemsep=2pt]
 \item \textbf{Regime-blind dependence.}
-The ESG calibrates correlations on long historical averages. In 2022, the
-equity/bond correlation switched from $-0.3$ (diversifying) to $+0.6$
-(concentration risk) within weeks. A model with fixed correlations cannot
-anticipate such reversals: the Markowitz optimum for a low-inflation regime is
-a high-risk portfolio in a stagflation regime.
+Fixed correlations cannot anticipate regime reversals: a Markowitz optimum for
+a low-inflation regime becomes high-risk under stagflation.
 
 \item \textbf{LSMC proxy limitations.}
-The polynomial LSMC proxy is accurate only within the region covered by the
-design-of-experiment, which is constructed without regime conditioning.
-Precision degrades precisely in the stress zones most relevant for capital
-decisions. Moreover, the proxy is not expressed in terms of TPA factors,
-preventing its direct integration into a factor-based allocation loop.
+The polynomial proxy is accurate only within its regime-agnostic calibration
+region, degrading precisely in the stress zones most relevant for capital
+decisions, and is not expressed in common economic factors.
 
 \item \textbf{Static, siloed decision-making.}
-Markowitz optimises a single-period mean-variance criterion without
-anticipating future regime transitions or internalising hedging costs.
-Allocation and hedging are decided separately, yielding a suboptimal joint
-policy for an insurer whose critical losses are convex. Moreover, the
-objective function is imposed uniformly rather than identified automatically
-from the portfolio's dominant risk factor and balance-sheet context, which is
-precisely what a dynamic TPA process should adapt over time.
+Allocation and hedging are decided separately --- suboptimal for an insurer with
+convex critical losses --- and the objective is imposed uniformly rather than
+inferred from each portfolio's dominant risk factor.
 
-\item \textbf{Private asset valuation.}
-Private equity, private debt, infrastructure and real estate constitute a
-growing share of Generali's portfolio. Their quarterly, smoothed NAV
-valuations create an \textbf{illusion of low correlation} with public markets:
-in 2008, private equity NAVs remained stable for 6--12 months after the
-crash before correcting sharply. This artificial smoothing
-\textit{understates} true economic dependence in stress regimes and introduces
-a lag bias in the SCR calculation. Furthermore, the irrevocable capital
-commitments of closed-end funds are incompatible with dynamic rebalancing
-frameworks that treat all assets as freely tradeable.
+\item \textbf{Private asset valuation bias.}
+Private equity, private debt and real estate NAVs are smoothed quarterly: in
+2008 private equity NAVs stayed stable for $6$--$12$ months before correcting
+sharply, understating stress-regime dependence and introducing a lag bias in
+the SCR.
 \end{enumerate}
 
-\subsection{The TPA as target framework}
+\subsection{The Total Portfolio Approach: target framework}
 
-The \textbf{Total Portfolio Approach (TPA)} is the management framework
-that Generali France aims to adopt, evaluating each investment decision through
-its marginal contribution to total balance sheet risk via common economic
-factors: Duration, Inflation, Growth, Liquidity, Carry. Implementations at
-sovereign wealth funds (Future Fund, CPP Investments) report approximately
-$+1\%$ excess return per year relative to classical SAA (Thinking Ahead
-Institute, 2025; CAIA, 2024).
-
-However, TPA currently rests on simplistic dependence assumptions: linear,
-Gaussian, non-regime-conditional. For an insurance company, the factor space
-must also include liability-side and cross-cutting factors (surrender rate
-dynamics, longevity, yield curve interactions with the BEL). This thesis
-provides the missing quantitative foundations to make TPA operational for an
-insurer under Solvency~II, structured along three research axes: regime-%
-conditional factor simulation (Axis~1), fast capital proxy (Axis~2), and
-joint allocation-hedging policy (Axis~3).
+The \textbf{Total Portfolio Approach (TPA)} evaluates each decision through its
+marginal contribution to total balance-sheet risk via common factors
+(Duration, Inflation, Growth, Liquidity, Carry). Implementations at sovereign
+wealth funds (Future Fund, CPP Investments) report about $+1\%$ excess return
+per year over classical SAA (Thinking Ahead Institute, 2025; CAIA, 2024). For
+an insurer under Solvency~II, the factor space must also include liability-side
+factors (surrender, longevity, yield-curve/BEL interactions), and every
+decision must internalise a capital cost. Existing actuarial tools address none
+of this jointly; this thesis fills the gap along three coupled axes:
+regime-conditional factor simulation (Axis~1), fast capital proxy (Axis~2),
+and joint allocation-hedging policy (Axis~3).
 
 % ================================================================
-\section{Research Questions}
+\section{Research Overview}
 % ================================================================
 
-\begin{rqthm}[Regime-conditional factor dependence: from GAN, VAE and SGM to formal guarantees]
-How to simulate the joint distribution of TPA factors conditionally on the
-current macroeconomic regime --- identified in real time by a sequential
-filter --- while capturing the non-linear, asymmetric tail dependencies
-relevant for extreme risk? Different generative methodologies will be tested
-and compared: Generative Adversarial Networks (GANs), Variational Autoencoders
-(VAEs) and Score-Based Generative Models (SGMs). Specifically: (i) how to
-formally validate the conditional dependence structure learned by a
-regime-conditional GAN or VAE using copula specification tests; and (ii) how
-to obtain $W_2$-convergence guarantees when upgrading to an SGM with
-sequentially estimated regime states?
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=6mm,
+  box/.style={draw,rounded corners,align=center,inner sep=4pt,
+              minimum height=12mm,font=\small},
+  ax/.style={box,minimum width=37mm},
+  arr/.style={-{Latex[length=2mm]},thick},
+  lbl/.style={font=\scriptsize\itshape,align=center}
+]
+\node[ax] (a1) {\textbf{Axis~1}\\Regime-conditional\\generative model\\\scriptsize(HMM-SMC + GAN/VAE/SGM)};
+\node[ax,right=17mm of a1] (a2) {\textbf{Axis~2}\\Differentiable\\SCR proxy\\\scriptsize(Volterra functional)};
+\node[ax,right=17mm of a2] (a3) {\textbf{Axis~3}\\Joint allocation\\\& hedging policy\\\scriptsize(stochastic control)};
+\draw[arr] (a1) -- node[lbl,above]{certified\\scenarios ($W_2$)} (a2);
+\draw[arr] (a2) -- node[lbl,above]{capital\\constraint ($\nabla$SCR)} (a3);
+\draw[arr] (a3.south) -- ++(0,-7mm) -| node[lbl,below,pos=0.25]{realised regime / rebalancing feedback} (a1.south);
+\end{tikzpicture}
+\caption{The three axes form a single closed capital-aware control loop:
+certified regime-conditional scenarios feed a fast differentiable capital
+proxy, which becomes the explicit constraint of the joint allocation and
+hedging policy; realised regimes feed back into the generator.}
+\label{fig:pipeline}
+\vspace{4pt}
+
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{}Xcccc@{}}
+\toprule
+\textbf{Approach} & \makecell{Regime-\\aware} & \makecell{Differen-\\tiable} &
+\makecell{$W_2$/$L^2$\\certified} & \makecell{Insurance-\\calibrated} \\
+\midrule
+Static SAA / Markowitz                       & \ding{55} & \ding{55} & \ding{55} & \ding{51} \\
+Copulas (Sklar, Fermanian)                   & \ding{55} & \ding{55} & \ding{51} & \ding{55} \\
+LSMC proxy (Krah et al.)                     & \ding{55} & \ding{55} & \ding{51} & \ding{51} \\
+GAN/VAE time-series (Wiese, Yoon)            & \ding{55} & \ding{51} & \ding{55} & \ding{55} \\
+Score-based models (Ocello et al.)           & \ding{55} & \ding{51} & \ding{51} & \ding{55} \\
+Deep hedging (Buehler et al.)               & \ding{55} & \ding{51} & \ding{55} & \ding{55} \\
+\midrule
+\textbf{This thesis (Axes 1--3)}            & \ding{51} & \ding{51} & \ding{51} & \ding{51} \\
+\bottomrule
+\end{tabularx}
+\captionof{table}{Positioning of the research programme against the state of the art.\\
+\ding{51}~= requirement met, \ding{55}~= not addressed.}
+\label{tab:positioning}
+\end{figure}
+
+% ================================================================
+\section{Research Programme}
+% ================================================================
+
+% ----------------------------------------------------------------
+\subsection{Axis~1 --- Regime-Conditional Factor Dependence}
+% ----------------------------------------------------------------
+
+\noindent\textbf{Research question.}
+\begin{rqthm}
+How to generate the joint distribution of TPA factors conditionally on a
+sequentially estimated macroeconomic regime, while providing: (i)~formal
+goodness-of-fit guarantees on the learned dependence structure; and
+(ii)~non-asymptotic $W_2$-convergence bounds under particle-filter
+inference error on the regime state?
 \end{rqthm}
 
-\begin{rqthm}[Supervised SCR proxy for dynamic decision-making]
-How to construct a proxy for the insurance SCR --- expressed as a function
-of TPA factors, the current regime, and key liability states including
-private asset NAV lags --- that is sufficiently accurate in
-decision-relevant zones (near the regulatory threshold, under stress regimes),
-with controlled error bounds per regime and sub-10ms inference time,
-enabling its integration into a dynamic optimisation loop as an explicit
-capital constraint in the allocation programme?
-\end{rqthm}
+\noindent\textbf{State of the art.}
 
-\begin{rqthm}[Joint allocation and deep hedging policy]
-How to learn a dynamic decision policy jointly optimising TPA factor
-exposures and explicit hedging positions (deep hedging), with a
-portfolio-specific objective function automatically inferred from the
-dominant risk factor to optimise, and under capital and liquidity constraints
-including an explicit SCR proxy constraint and private asset engagement limits,
-in the presence of unstable, regime-conditional factor dependencies,
-so as to reduce the tail risk of the insurance balance sheet?
-\end{rqthm}
+\textit{Regime identification.}
+Hidden Markov Models (Hamilton, 1989) and Sequential Monte Carlo (SMC) particle
+filters (Chopin \& Papaspiliopoulos, 2020) provide tractable real-time estimation
+of latent macroeconomic regimes $z_t \in \{1,\ldots,K\}$. Their combination ---
+an online HMM-SMC filter --- yields a posterior $p(z_t|\mathcal{F}_t)$ updated at
+each observation.
 
-% ================================================================
-\section{Related Work and Positioning}
-% ================================================================
+\textit{Generative Adversarial Networks.}
+Applied to financial series by Wiese et al.\ (2020, Quant-GAN) and Yoon et al.\
+(2019, TimeGAN), conditional GANs generate
+$\mathbf{F}_{t+1} | z_t = k \sim G_\theta(\varepsilon,k)$ with full flexibility
+(no parametric dependence assumption), but suffer from \textit{mode collapse}
+and the absence of distributional guarantees, limiting regulatory auditability.
 
-\subsection{Generative models and regime-conditional dependence}
+\textit{Variational Autoencoders.}
+CVAEs encode each trajectory into a regime-conditional posterior and maximise
+the ELBO; they offer stable training and an auditable latent structure, but
+produce overly smooth samples due to the Gaussian posterior approximation.
 
-Generative Adversarial Networks applied to financial series have demonstrated
-their capacity to capture multivariate stylized facts: heavy tails, volatility
-clustering, and asymmetries (Wiese et al., 2020, Quant-GAN; Yoon et al., 2019,
-TimeGAN). Conditional GAN architectures (cGAN) allow generation to be
-conditioned on external variables --- here, the macroeconomic regime.
-However, GANs suffer from \textit{mode collapse} and provide no formal
-guarantees on the quality of the generated distribution, limiting their
-regulatory auditability.
-
-Variational Autoencoders (VAEs) offer a complementary perspective: the data
-is encoded into a structured latent space $\mathbf{z} \sim q_\phi(\mathbf{z}|x)$
-and the generative distribution $p_\theta(x|\mathbf{z})$ is learned by
-maximising the evidence lower bound (ELBO):
-\[\mathcal{L}_{\mathrm{ELBO}}(\theta,\phi)
-  = \mathbb{E}_{q_\phi(\mathbf{z}|x)}[\log p_\theta(x|\mathbf{z})]
-  - \mathrm{KL}(q_\phi(\mathbf{z}|x)\,\|\,p(\mathbf{z})).\]
-Unlike GANs, VAEs provide a stable training objective and an explicit
-probabilistic framework, but can produce overly smooth samples due to the
-Gaussian posterior approximation. Conditional VAEs (CVAEs) allow
-regime-based conditioning via a label-conditioned prior $p(\mathbf{z}|k)$,
-providing an auditable latent representation of each regime's dependence
-structure.
-
-Copula theory (Sklar, 1959) provides a complementary framework for validating
-learned dependence. By Sklar's theorem:
-\[P(\mathbf{F}_t \le \mathbf{f}) = C(F_1(f_1),\ldots,F_d(f_d)),\]
-where $C$ is the copula capturing the dependence structure independently of
-the marginals. Fermanian (2013, 2022) has developed specification tests for
-conditional copulas, providing the statistical tools to formally validate
-that a GAN, VAE or SGM has correctly captured the conditional tail dependence
-coefficient $\lambda_k$ per regime.
-
-Score-Based Generative Models (SGMs) offer a generative alternative with
-formal convergence guarantees. Strasman, Ocello et al.\ (TMLR, 2024) establish
-explicit bounds on the Wasserstein-2 distance as a function of the noise
-schedule $g(t)$:
+\textit{Score-Based Generative Models (SGMs).}
+Strasman, Ocello et al.\ (TMLR, 2024) establish $W_2$ convergence bounds:
 \begin{equation}
   \mathrm{KL}(\hat{p}\,\|\,p^*)
   \;\le\; \int_0^T g(t)^2\,\varepsilon_{\mathrm{score}}(t)\,dt
   + \varepsilon_{\mathrm{init}}.
 \label{eq:kl}
 \end{equation}
-Gentiloni-Silveri and Ocello (ICML, 2025) extend these guarantees to
-non-log-concave distributions --- notably Gaussian mixtures corresponding
-to distinct market regimes.
+Gentiloni-Silveri \& Ocello (ICML, 2025) extend these guarantees to
+non-log-concave distributions (Gaussian mixtures), directly applicable to
+multi-regime market models. De Marco, Pham \& Zanni (2025) further introduce
+jump-diffusion Schr\"{o}dinger bridges to capture discontinuous regime
+transitions.
 
-At the frontier of generative modelling for time series with structural
-breaks, De Marco, Pham \& Zanni (2025) introduce a jump-diffusion
-Schr\"{o}dinger bridge model extending the diffusion-based approach to
-accommodate discontinuities in the generative dynamics. Starting from a
-Schr\"{o}dinger bridge entropy-minimisation problem, the model characterises
-the optimal controlled jump-diffusion process generating synthetic time series
-matching the joint distribution of observed data --- including abrupt
-movements, heavy tails and regime changes that diffusion-only models fail to
-reproduce.
+\textit{Copulas: a validation framework, not a generative model.}
+Sklar's theorem separates margins from dependence, and Fermanian (2013, 2022)
+provides goodness-of-fit tests for conditional copulas. Classical parametric
+families (Gaussian, Student-$t$, Archimedean), however, impose rigid tails,
+scale poorly in high dimension and cannot capture cross-regime dynamics.
+Copulas therefore serve here exclusively as a \emph{validation tool}: the
+conditional tail-dependence coefficient $\lambda_k$ is estimated and tested
+via Fermanian's specification tests to validate generative outputs, not to
+generate them.
 
-\noindent\textbf{Comparison metrics.}
-A rigorous comparison of GAN, VAE and SGM for regime-conditional factor
-generation will be conducted along four axes:
-(i) \textit{statistical fidelity} --- Wasserstein-2 distance $W_2$ and
-Maximum Mean Discrepancy (MMD) between generated and empirical distributions;
-(ii) \textit{tail calibration} --- per-regime conditional tail dependence
-$\lambda_k^{\mathrm{gen}}$ versus empirical estimates, validated via
-Fermanian's (2013) specification tests;
-(iii) \textit{temporal structure} --- reproduction of autocorrelation and
-cross-autocorrelation patterns, volatility clustering and
-leverage-effect signatures;
-(iv) \textit{regulatory auditability} --- presence of formal convergence
-bounds ($W_2$ for SGM; ELBO for VAE), interpretability of latent regime
-structure, and sensitivity to training sample size.
+\textit{Financial networks and correlation structure.}
+Bardoscia et al.\ (2021) show that asset correlation matrices exhibit community
+structure and spectral properties amenable to graph-theoretic analysis,
+motivating an optional graph-neural-network (GNN) encoder in the Axis~1
+generator to capture non-linear pairwise interactions beyond the covariance
+matrix.
 
-\textbf{Identified gap.}
-Neither conditional GANs, conditional VAEs, nor conditional SGMs have been
-applied to simulating the joint distribution of TPA factors with real-time
-regime identification. For the GAN and VAE: the absence of formal
-regime-conditional tail dependence validation via copula specification tests.
-For the SGM: the absence of $W_2$ bounds for the conditional case when the
-regime state is estimated sequentially with inference error. These
-contributions constitute Axis~1.
+\noindent\textbf{Identified gaps.}
+Neither conditional GANs, VAEs nor SGMs have been applied to the joint
+distribution of TPA factors with real-time regime identification.
+For the GAN/VAE: the absence of formal regime-conditional tail-dependence
+validation. For the SGM: the absence of $W_2$ bounds for the conditional case
+with sequentially estimated regime states. These constitute the theoretical
+contribution of Axis~1.
 
-\subsection{Insurance liability proxy models}
+\noindent\textbf{Proposed approach.}
 
-The LSMC framework of Krah et al.\ (2018) is the industry reference for
-life insurance proxy models, approximating the BEL by polynomial regression
-on a pre-computed design-of-experiment. This approach presents two critical
-limitations: it does not condition the SCR on the current macroeconomic regime,
-and its accuracy degrades precisely in the stress zones most relevant for the
-allocation decision. Neural network approaches (Huber \& Schmocker, 2022) have
-demonstrated that a well-specified proxy can achieve 1--3\% accuracy with
-inference times below 10ms.
+\textit{Stage 1 (Year 1) --- cGAN and cVAE.}
+Let $z_t$ be identified by an online HMM-SMC filter. A conditional GAN
+$G_\theta(\varepsilon,k)$ and a CVAE are trained in parallel, both incorporating
+the private asset vintage lag factor
+$\tilde{F}^{\mathrm{PA}}_t = \mathrm{NAV}^{\mathrm{PA}}_{t-1}$
+to capture the quarterly smoothing bias. Model comparison is conducted on:
+Wasserstein-2 distance $W_2$, Maximum Mean Discrepancy (MMD), per-regime
+tail calibration via Fermanian's $\lambda_k$ tests, autocorrelation structure,
+and regulatory auditability.
 
-From the perspective of stochastic approximation methods for financial risk
-measures, Bourgey (2020) provides a comprehensive analysis including
-multi-level Monte Carlo estimators for nested expectations --- directly
-relevant to the LSMC nested SCR problem --- and polynomial chaos expansion
-meta-models for large weighted sums of conditionally independent Bernoulli
-variables, with $L^2$ error estimates as a function of the expansion order.
-These results motivate the adaptive-weighting architecture of Axis~2, where
-accuracy is concentrated near the regulatory threshold and in stress regimes.
-
-\textbf{Identified gap.}
-Existing proxies are constructed independently of the regime and TPA factors,
-and none accounts for the NAV-lag bias of private assets in the SCR
-calculation. A regime-conditioned, factorially coherent proxy with
-adaptive sample weighting and controlled error bounds does not exist in
-the literature. This is the contribution of RQ2.
-
-\subsection{Deep RL, dynamic allocation and deep hedging}
-
-Wekwete (2023) demonstrated the applicability of Deep RL (PPO, SAC) to
-insurance ALM in stochastic environments. Buehler et al.\ (2019) introduced
-\textit{deep hedging}: learning an optimal hedging strategy via a neural
-network minimising a convex risk measure, without market completeness
-assumptions. This approach has been extended to extreme risk hedging
-(Carbonneau, 2021; Cao et al., 2023) and multi-asset portfolios under
-stress regimes.
-
-On the risk-measure side, Rosazza Gianin et al.\ (2024) develop a theory
-of shortfall systemic risk measures and capital allocation rules, providing
-axiomatic foundations and tractable capital allocation schemes for
-multi-entity portfolios under dependence via a generalised collapse-to-the-%
-mean framework. Their results connect naturally to the distortion-based
-capital constraint embedded in Axis~3.
-
-R\'{e}veillac (2013) studies optimal investment with CRRA preferences
-subject to dynamic risk constraints on trading strategies. Optimal policies
-are characterised by a \textbf{quadratic backward stochastic differential
-equation (BSDE)}, and within the class of time-consistent distortion risk
-measures a three-fund separation result is established. This framework
-directly informs the stochastic control formulation of Axis~3, where the
-joint allocation-hedging policy operates under a dynamic SCR constraint
-generated by a general class of risk measures.
-
-\textbf{Identified gap.}
-Learning a joint allocation-and-hedging policy --- fed by an unstable
-dependence model and a fast SCR proxy, respecting private asset engagement
-constraints, while automatically selecting the relevant portfolio objective in
-factor space and being validated through out-of-sample allocation backtests
-within a TPA insurance framework under Solvency~II --- does not exist in the
-literature. This is the contribution of RQ3.
-
-% ================================================================
-\section{Methodology and Deliverables}
-% ================================================================
-
-\subsection{Axis 1 --- Regime-conditional factor dependence (Years 1--2)}
-
-Axis~1 proceeds in two methodological stages corresponding to a progressive
-increase in theoretical rigour.
-
-\medskip
-\noindent\textbf{Stage 1 --- Regime-conditional GAN (Year 1).}
-Let $z_t \in \{1,\ldots,K\}$ be the macroeconomic regime identified in real
-time by a particle filter (SMC, Chopin \& Papaspiliopoulos, 2020). A
-conditional GAN is trained to simulate the joint distribution of TPA factors
-conditionally on the current regime:
-\begin{equation}
-  \mathbf{F}_{t+1} \mid z_t = k
-  \;\sim\; G_\theta(\varepsilon,\,k),
-  \quad \varepsilon \sim \mathcal{N}(0,I),
-\label{eq:gan}
-\end{equation}
-where $G_\theta$ is the generator and the discriminator $D_\phi$ distinguishes
-real from synthetic scenarios regime by regime. The advantage of the GAN is
-total flexibility: no parametric assumption on the dependence structure is
-imposed, allowing the model to learn asymmetries and non-linearities in
-tail dependence under stress. The conditional tail dependence coefficient
-\[\lambda_k = \lim_{u\to 1} P\!\bigl(F_i > F_{i,k}^{-1}(u)
-\mid F_j > F_{j,k}^{-1}(u),\, z_t = k\bigr)\]
-is estimated empirically and validated via Fermanian's (2013) specification
-tests for conditional copulas.
-
-\textbf{Private asset treatment.}
-The factor vector includes a \textit{vintage lag factor}
-$\tilde{F}^{\mathrm{PA}}_t = \mathrm{NAV}_{t-1}^{\mathrm{PA}}$ capturing the
-quarterly smoothing bias of private equity, real estate and infrastructure NAVs.
-The GAN learns the true economic dependence between private and public assets,
-including the delayed correction dynamic observed in 2008 and 2020.
-
-\noindent\textbf{Stage 1b --- Regime-conditional VAE.}
-As a complementary generative approach within Stage~1, a \textbf{Conditional
-VAE (CVAE)} is trained alongside the GAN. The encoder maps each historical
-factor trajectory $(\mathbf{F}_{t+1}, z_t = k)$ to a regime-conditional
-posterior $q_\phi(\mathbf{z}|\mathbf{F}_{t+1}, k)$, and the decoder generates
-new factor vectors from samples of the prior $p(\mathbf{z}|k)$. The ELBO
-provides a stable training objective free from mode collapse, at the cost of
-potentially smoother marginal distributions. Both GAN and VAE outputs are
-evaluated against the comparison metrics defined in Section~3.1, with
-particular attention to regime-conditional tail calibration.
-
-\medskip
-\noindent\textbf{Stage 2 --- SGM with $W_2$ guarantees (Year 2).}
-The GAN, while empirically powerful, suffers from mode collapse and provides
-no formal guarantees --- limiting regulatory auditability. The second stage
-replaces or complements the GAN with a conditional SGM, building on the
-theoretical framework of Strasman, Ocello et al.\ (TMLR, 2024) and
-Gentiloni-Silveri \& Ocello (ICML, 2025). The conditional OU forward process
-for regime $z_t = k$ is:
+\textit{Stage 2 (Year 2) --- Conditional SGM with $W_2$ guarantees.}
+A conditional OU forward process for regime $k$:
 \begin{equation}
   d\mathbf{x}^\tau = -\mathbf{x}^\tau\,d\tau
-  + \sqrt{2}\,g_k(\tau)\,dW_\tau,
-  \quad \tau \in [0,T],
+  + \sqrt{2}\,g_k(\tau)\,dW_\tau, \quad \tau \in [0,T],
 \label{eq:sgm}
 \end{equation}
-with regime-specific noise schedule $g_k(\tau)$. The convergence bounds give:
-\[W_2(\hat{p}_k,\,p^*_k)^2
-\;\le\; C\int_0^T g_k(\tau)^2\,\varepsilon_{\mathrm{score}}(\tau)\,d\tau,\]
-even for non-log-concave distributions corresponding to distinct market regimes.
+with regime-specific noise schedule $g_k(\tau)$. The theoretical contribution
+is the extension of the $W_2$ bounds of Gentiloni-Silveri \& Ocello (ICML 2025)
+to the conditional case with online SMC regime estimation --- quantifying how
+inference error in $p(z_t|\mathcal{F}_t)$ propagates into the generative bound.
+A scenario selection layer then extracts a central regime-conditional scenario
+for downstream reporting and optimisation diagnostics.
 
-\noindent\textbf{Theoretical contribution.}
-(i) Empirical validation of tail dependence $\lambda_k$ generated by the GAN
-via Fermanian (2013) specification tests.
-(ii) Extension of the $W_2$ bounds of Gentiloni-Silveri \& Ocello (ICML 2025)
-to the conditional SGM case with online HMM --- the key open question: how do
-these bounds evolve when regime $z_t$ is estimated sequentially with particle
-filter inference error?
+% ----------------------------------------------------------------
+\subsection{Axis~2 --- Supervised Capital Proxy}
+% ----------------------------------------------------------------
 
-\noindent\textbf{Scenario selection layer.}
-Beyond generating a full scenario cloud, Axis~1 also includes a scenario
-selection step producing a \textbf{central regime-conditional scenario} used
-as the baseline path for reporting, comparison, and downstream optimisation
-diagnostics.
+\noindent\textbf{Research question.}
+\begin{rqthm}
+How to construct a proxy for the insurance SCR --- expressed as a function of
+TPA factors, the current regime, and liability states including private asset
+NAV lags formalised as a Volterra functional --- that is accurate in
+decision-relevant zones with controlled $L^2$ error bounds per regime and
+sub-10ms inference time, and exposes a differentiable interface for its direct
+embedding as an explicit capital constraint in a downstream stochastic
+optimisation programme?
+\end{rqthm}
 
+\noindent\textbf{State of the art.}
 
-\subsection{Axis 2 --- Supervised SCR proxy (Year 2)}
+\textit{Classical proxy models.}
+The LSMC framework (Krah et al., 2018) approximates the BEL by polynomial
+regression on a design-of-experiment. Its two critical limitations are
+regime-blindness and degraded accuracy in stress zones. Neural network proxies
+(Huber \& Schmocker, 2022) achieve $1$--$3\%$ accuracy at $<10$ms inference.
+Bourgey (2020) provides theoretical foundations via multi-level Monte Carlo
+(MLMC) estimators for nested expectations and polynomial chaos expansions with
+$L^2$ error estimates, motivating the adaptive-weighting architecture of
+Axis~2.
 
-\noindent\textbf{Model.}
-Let $\mathbf{P}_t \in \mathbb{R}^p$ be the liability state vector: effective
-duration, average guaranteed rate, observed lapse ratio, and the private asset
-vintage lag $\tilde{F}^{\mathrm{PA}}_{t-1}$ capturing NAV smoothing bias.
-We learn a supervised proxy:
+\textit{Recent generative and flow-based surrogates.}
+Three recent architectures merit systematic comparison for their
+uncertainty-quantification and stability properties:
+\textbf{Neural ODEs} (Chen et al., 2018), which model the proxy surface as a
+continuous-depth dynamical system; \textbf{Conditional Flow Matching} (Lipman
+et al., 2022), which learns straight-line ODE paths offering stable training
+and a full conditional density
+$p(\widehat{\mathrm{SCR}} | \mathbf{F}, z, \mathbf{P})$ for uncertainty-aware
+allocation; and \textbf{score-based diffusion surrogates}. \textbf{Tabular
+diffusion models} (TabDDPM, Kotelnikov et al., 2023) additionally serve as
+design-of-experiment augmentation for under-represented regimes.
+
+\textit{Volterra processes and path-dependent risk measures.}
+The private asset NAV lag is not a Markovian state variable. The observed
+smoothed value
+$\widetilde{\mathrm{NAV}}_t = \int_0^t K(t,s)\,\mathrm{NAV}^*_s\,ds$
+is a Volterra functional of the true (unobservable) NAV process, where $K(t,s)$
+is a smoothing kernel. The theory of affine Volterra processes (Abi Jaber,
+Larsson \& Pulido, 2019; El Euch \& Rosenbaum, 2019) provides a tractable
+framework for such path-dependent dynamics. This motivates extending the
+capital risk measure to the functional setting:
+\begin{equation}
+  \rho^V(L_T)
+  = \phi\!\left(\int_0^T K(T,s)\,\mathrm{CVaR}_\alpha(L_s)\,ds\right),
+\label{eq:volterra}
+\end{equation}
+where $\phi$ is a monetary risk measure. Equation~\eqref{eq:volterra}
+formalises the temporally diffused risk crystallisation of private assets and
+provides a theoretical grounding for the vintage lag correction embedded in the
+proxy state vector.
+
+\textit{Model comparison and interoperability metrics.}
+Proxy architectures will be evaluated on two sets of criteria.
+\textit{Comparison metrics}: (i)~accuracy --- RMSE, relative error at the SCR
+regulatory threshold, $L^\infty$ norm in stress zones; (ii)~calibration ---
+prediction-interval coverage, reliability diagrams; (iii)~speed --- inference
+latency (target $<5$ms) and batch throughput; (iv)~interpretability ---
+SHAP values, integrated gradients, first-order Sobol sensitivity indices
+$S_i = \mathrm{Var}[\mathbb{E}[\widehat{\mathrm{SCR}}|\mathbf{F}_i]]/
+\mathrm{Var}[\widehat{\mathrm{SCR}}]$.
+\textit{Interoperability metrics}: (i)~differentiability ---
+$\nabla_\mathbf{F}\widehat{\mathrm{SCR}}$ available via automatic
+differentiation for gradient-based embedding in the Axis~3 optimiser;
+(ii)~API compatibility with GPS and PyTorch/JAX optimisation frameworks;
+(iii)~monotonicity and convexity preservation as required by Solvency~II
+constraints; (iv)~memory footprint for production deployment.
+
+\noindent\textbf{Identified gaps.}
+No existing proxy is jointly conditioned on the macroeconomic regime, TPA
+factors and private asset NAV lag. None accounts for the path-dependent
+Volterra structure of NAV smoothing, and none provides the differentiable
+interface required for its direct embedding as an explicit capital constraint
+in a dynamic optimisation programme.
+
+\noindent\textbf{Proposed approach.}
+We learn the supervised proxy:
 \begin{equation}
   \widehat{\mathrm{SCR}}(t)
   = f_\theta\!\bigl(\mathbf{F}_t,\,z_t,\,\mathbf{P}_t\bigr),
 \label{eq:proxy}
 \end{equation}
-where $f_\theta$ is a neural network (MLP + attention) trained on a
-design-of-experiment
-$\bigl\{(\mathbf{F}^{(i)},z^{(i)},\mathbf{P}^{(i)}),\mathrm{SCR}^{(i)}\bigr\}$
-computed offline via Prophet/MoSes. The key methodological innovation is
-\textbf{adaptive weighting}: scenarios close to the regulatory threshold and
-in stress regimes receive higher training weight, concentrating accuracy where
-the decision is most sensitive. The generalisation bound satisfies:
+where $\mathbf{P}_t$ includes effective duration, average guaranteed rate,
+observed lapse ratio and the vintage lag $\tilde{F}^{\mathrm{PA}}_{t-1}$.
+The network $f_\theta$ is trained with \textbf{adaptive sample weighting}
+concentrating mass near the regulatory threshold and in stress regimes.
+The generalisation bound:
 \begin{equation}
   \bigl|\mathrm{SCR}(t) - f_\theta(\mathbf{F}_t,z_t,\mathbf{P}_t)\bigr|
   \;\le\; \varepsilon_k(n_k,\delta),
 \label{eq:bound}
 \end{equation}
-where $\varepsilon_k(n_k,\delta)$ decreases with the number of training points
-$n_k$ in regime $k$ and with confidence level $1-\delta$.
+decreasing with $n_k$ (training points in regime $k$) and with confidence
+$1-\delta$. The four architectures (MLP+attention, Neural ODE, Flow Matching,
+score-based) are compared on the full metric set above, and the selected proxy
+is exported as a differentiable module ($\nabla_\mathbf{F}\widehat{\mathrm{SCR}}$
+available) for direct use as an explicit constraint in the Axis~3 programme.
 
-\noindent\textbf{Contribution.}
-First SCR proxy jointly conditioned on the macroeconomic regime, TPA factors,
-and private asset NAV lag, with empirical error bounds validated across
-portfolio ranges including Fonds Euro and Euro-Croissance. Inference in
-$<5$~ms versus several hours for the full Prophet/MoSes calculation. This
-proxy is not only a reporting object: it enters the downstream allocation
-programme as an explicit state-dependent capital constraint.
+% ----------------------------------------------------------------
+\subsection{Axis~3 --- Stochastic Control: Joint Allocation and Deep Hedging}
+% ----------------------------------------------------------------
 
+\noindent\textbf{Research question.}
+\begin{rqthm}
+How to learn a joint stochastic control policy optimising TPA factor exposures
+and hedging positions under a differentiable SCR capital constraint, with
+regime-adaptive objectives automatically derived from the dominant risk factor?
+\end{rqthm}
 
-\subsection{Axis 3 --- Joint allocation and deep hedging policy (Year 3)}
+\noindent\textbf{State of the art.}
 
-\noindent\textbf{Model.}
-For each portfolio, a latent objective map
-$\psi_t = g_\eta(\mathbf{F}_t,z_t,\mathbf{P}_t,\widehat{\mathrm{SCR}}_t)$
-identifies the dominant factor objective to optimise (for example duration
-control, inflation hedging, carry extraction, liquidity preservation, or
-capital efficiency) as a function of the current regime, liability state and
-capital position. This layer is what allows the framework to move from a
-static allocation rule to a genuinely dynamic allocation policy.
+\textit{Deep reinforcement learning for ALM.}
+Wekwete (2023) demonstrated the applicability of Deep RL (PPO, SAC) to
+insurance ALM in stochastic environments, establishing the feasibility of
+learning allocation policies in high-dimensional state spaces under regulatory
+constraints.
 
-The agent state is $s_t = (\mathbf{F}_t,\hat{C}_{z_t},z_t,\mathbf{P}_t,
-\widehat{\mathrm{SCR}}_t)$, where $\hat{C}_{z_t}$ is the regime-estimated
-copula from Axis~1 and $\widehat{\mathrm{SCR}}_t$ the proxy from Axis~2.
-The action is the pair $(\mathbf{w}_t,\mathbf{h}_t)$, where
-$\mathbf{w}_t \in \Delta^{d-1}$ is the TPA factor allocation vector and
-$\mathbf{h}_t \in \mathcal{H}$ is the hedging position (puts, overlays,
-convexity structures). The policy $\pi$ maximises:
+\textit{Deep hedging.}
+Buehler et al.\ (2019) introduced deep hedging: learning a hedging strategy
+via a neural network minimising a convex risk measure without market
+completeness assumptions. The approach has been extended to extreme risk
+(Carbonneau, 2021; Cao et al., 2023) and multi-asset portfolios under stress
+regimes, and provides the algorithmic backbone for the joint
+allocation-hedging objective of Axis~3.
+
+\textit{Stochastic control under dynamic risk constraints.}
+R\'{e}veillac (2013) studies CRRA utility maximisation subject to dynamic
+risk constraints on trading strategies, characterised by quadratic BSDEs.
+Within the class of time-consistent distortion risk measures a three-fund
+separation result holds --- directly informing the stochastic control
+formulation where the joint policy operates under a dynamic SCR constraint
+generated by a general class of risk measures.
+
+\textit{Shortfall systemic risk measures and capital allocation.}
+Rosazza Gianin et al.\ (2024) develop a theory of shortfall systemic risk
+measures with axiomatic capital allocation rules via a generalised
+collapse-to-the-mean framework. Their results connect to the
+distortion-based capital constraint of Axis~3 and motivate the use of
+$\mathrm{CVaR}_{0.99}$ of the capital deficit as the hedging objective.
+
+\noindent\textbf{Identified gaps.}
+No existing framework jointly learns allocation and hedging under: (i)~a
+regime-conditional, non-linear dependence model; (ii)~a fast, differentiable
+capital constraint; (iii)~private asset engagement restrictions; and (iv)~an
+automatically identified portfolio-specific objective function. The full
+coupling of Axes~1 and~2 into a stochastic control loop is the contribution
+of Axis~3.
+
+\noindent\textbf{Proposed approach.}
+A latent objective map $\psi_t = g_\eta(\mathbf{F}_t,z_t,\mathbf{P}_t,
+\widehat{\mathrm{SCR}}_t)$ identifies the dominant factor objective per
+portfolio and regime. The agent state is
+$s_t = (\mathbf{F}_t,\hat{C}_{z_t},z_t,\mathbf{P}_t,\widehat{\mathrm{SCR}}_t)$
+and the action $(\mathbf{w}_t,\mathbf{h}_t)$ is the joint
+allocation-hedging pair. The policy $\pi$ solves
 \begin{equation}
   \max_\pi\;\mathbb{E}_\pi\!\left[\sum_{t=0}^T
-  \Bigl(r_{\psi_t}(\mathbf{w}_t,\mathbf{h}_t,\mathbf{F}_{t+1})
-  - \lambda_1 c(\mathbf{h}_t)
-  - \lambda_2\|\mathbf{w}_t - \mathbf{w}_{t-1}\|_1
-  - \lambda_3 \mathbf{1}[\Delta w^{\mathrm{PA}}_t > 0]
-  \Bigr)\right],
+  r_{\psi_t}(\mathbf{w}_t,\mathbf{h}_t,\mathbf{F}_{t+1})
+  - \mathcal{P}_t \right]
+  \quad\text{s.t.}\quad\widehat{\mathrm{SCR}}_t \le \bar{C},
 \label{eq:obj}
 \end{equation}
-subject to the explicit capital constraint
-\[\widehat{\mathrm{SCR}}_t \le \bar{C},\]
-where $r_{\psi_t}$ is the portfolio-specific objective functional selected in
-factor space, $\bar{C}$ the regulatory capital budget,
-$c(\mathbf{h}_t)$ the hedging cost (option premium, bid-ask spread), and the
-term $\lambda_3 \mathbf{1}[\Delta w^{\mathrm{PA}}_t > 0]$ penalises new
-private asset commitments to reflect their irrevocable, illiquid nature.
-
-\noindent\textbf{Integrated deep hedging.}
-Unlike classical deep hedging (Buehler et al., 2019) which targets payoff
-replication, the hedging component here aims to reduce the
-$\mathrm{CVaR}_{0.99}$ of the capital deficit while internalising hedging
-costs. The regime-conditional factor dependence of Axis~1 is directly
-embedded in the simulation environment, forcing the policy to be robust
-to dependence regime switches --- including the private asset delayed
-correction dynamic.
+where $r_{\psi_t}$ is the regime-and-portfolio-specific objective and
+$\mathcal{P}_t$ aggregates hedging cost, turnover and new-illiquid-commitment
+penalties. The hedging component targets
+$\mathrm{CVaR}_{0.99}$ reduction of the capital deficit, with the
+regime-conditional factor dependence of Axis~1 embedded directly in the
+simulation environment.
 
 
 % ================================================================
-\section{Expected Contributions}
+\section{Scientific Risks and Mitigation}
 % ================================================================
 
-\begin{tabularx}{\linewidth}{@{}p{2.8cm}X@{}}
+The programme is ambitious; its main scientific and operational risks have been
+anticipated, and each axis is designed with a fallback that preserves the
+overall contribution.
+
+\begin{tabularx}{\linewidth}{@{}p{4.4cm}>{\centering\arraybackslash}p{1cm}>{\raggedright\arraybackslash}X@{}}
 \toprule
-\textbf{Type} & \textbf{Description} \\
+\textbf{Risk} & \textbf{Lik.} & \textbf{Mitigation / fallback} \\
 \midrule
-\emph{Theoretical}
-& (i) Non-asymptotic error bounds on estimated conditional tail dependence
-  $\lambda_k$ for regime-conditional copulas and GANs (Fermanian);
-  (ii) Extension of $W_2$ bounds of Gentiloni-Silveri \& Ocello (ICML 2025)
-  to the conditional SGM case with online SMC regime estimation (Ocello);
-  (iii) Generalisation bounds for the regime-conditioned SCR proxy
-  with adaptive weighting and private asset NAV lag. \\
+cGAN mode collapse or unstable training (Axis~1)
+& Med.
+& The CVAE and conditional SGM are trained in parallel as substitutes;
+  the SGM enjoys formal $W_2$ guarantees and is the primary fallback if
+  adversarial training fails. \\
 \addlinespace
-\emph{Methodological}
-& (i) HMM-SMC architecture coupled to a regime-conditional GAN/VAE/SGM
-  with private asset vintage lag factor;
-  (ii) Supervised SCR proxy conditioned on regime and TPA factors
-  with adaptive weighting and explicit integration as optimisation constraint;
-  (iii) Dual allocation-and-hedging agent under private asset
-  engagement constraints and automatic portfolio-objective identification. \\
+Conditional $W_2$ bound not provable in full generality (Axis~1)
+& Med.
+& A partial result under piecewise log-concavity (Gaussian-mixture regimes,
+  following Gentiloni-Silveri \& Ocello, 2025) already covers the practically
+  relevant multi-regime case. \\
 \addlinespace
-\emph{Industrial}
-& Operational tools deployed at Generali: auditable regime-conditional
-  scenario generation, near-instantaneous SCR computation as optimisation
-  constraint, TPA allocation with integrated hedging and GenAM interface. \\
+Limited access to granular BEL / private-asset data
+& Med.
+& The actuarial design-of-experiment is augmented synthetically via TabDDPM;
+  the proxy is validated on historical crises (2008, 2020, 2022). \\
 \addlinespace
-\emph{Regulatory}
-& Models with controlled, auditable guarantees --- $W_2$ bounds for
-  the generative module, empirical error bounds for the SCR proxy ---
-  directly usable by the ACPR and the Generali Group Risk Division. \\
+Proxy accuracy degrades in extreme stress zones (Axis~2)
+& Low
+& Adaptive sample weighting concentrates training on decision-relevant tails;
+  MLMC control variates (Bourgey, 2020) bound the residual $L^2$ error. \\
+\addlinespace
+RL policy instability / non-convergence (Axis~3)
+& Med.
+& The differentiable proxy enables direct gradient-based control as a
+  fallback to model-free RL; deep hedging provides a validated warm start. \\
 \bottomrule
 \end{tabularx}
 
+% ================================================================
+\section{Timeline (36 Months)}
+% ================================================================
+
+\begin{itemize}[leftmargin=1.6em,itemsep=2pt]
+  \item \textbf{Year~1 --- Axis~1.}
+        Bloomberg factor database with NAV lags; online HMM-SMC calibration;
+        regime-conditional GAN/CVAE validated on 2008/2020/2022 crises.
+        \emph{Submission: Journal of Multivariate Analysis / Finance \& Stochastics.}
+  \item \textbf{Year~2 --- Axis~2.}
+        Actuarial design-of-experiment (Prophet/MoSes) with TabDDPM
+        augmentation; SCR proxy architecture comparison and Volterra $L^2$
+        bounds; differentiable proxy embedded as optimisation constraint.
+        \emph{Submission: Insurance: Mathematics and Economics.}
+  \item \textbf{Year~3 --- Axis~3.}
+        Joint allocation-and-hedging agent with automatic objective
+        identification; full three-axis coupling; multi-regime out-of-sample
+        backtesting; defence. \emph{Submission: Quantitative Finance / JFQA.}
+\end{itemize}
 
 % ================================================================
-\section{Timeline (36 months)}
+\section{Conclusion}
 % ================================================================
 
-\begin{tabularx}{\linewidth}{@{}p{1.4cm}p{2cm}X@{}}
-\toprule
-\textbf{Phase} & \textbf{Period} & \textbf{Key deliverables} \\
-\midrule
-1 & 1st year
-& Bloomberg factor database (20 years) including private asset NAV lags;
-  online HMM-SMC calibration;
-  regime-conditional GAN/VAE with copula validation on historical crises;
-  paper submission (Journal of Multivariate Analysis or Finance \&
-  Stochastics). \\
-\addlinespace
-2 & 2nd year
-& Actuarial design-of-experiment (Prophet/MoSes);
-  training and validation of regime-conditioned SCR proxy
-  with private asset NAV lag;
-  integration of the SCR proxy as an explicit optimisation constraint;
-  empirical error bounds per regime and portfolio range;
-  paper submission (Insurance: Mathematics and Economics). \\
-\addlinespace
-3 & 3rd year
-& Training of dual allocation-and-hedging agent with private asset
-  engagement constraints and automatic objective selection per portfolio;
-  full three-axis coupling;
-  multi-regime out-of-sample backtesting (2008, 2020, 2022);
-  PhD defence and publications
-  (Quantitative Finance or JFQA). \\
-\bottomrule
-\end{tabularx}
+This thesis delivers a tightly coupled three-module system designed to make the
+\textbf{Total Portfolio Approach operational for a life insurer under
+Solvency~II}, with direct integration into Generali France's proprietary
+platform GPS:
+
+\begin{itemize}[leftmargin=1.6em,itemsep=3pt]
+  \item \textbf{Module 1 (Axis~1)} replaces static ESG correlations with an
+        auditable regime-conditional generative model, enabling real-time
+        scenario generation that reflects the actual dependence structure of
+        the prevailing macroeconomic regime, including the path-dependent
+        correction dynamics of private assets.
+
+  \item \textbf{Module 2 (Axis~2)} replaces the multi-hour SCR calculation
+        with a $<5$ms differentiable proxy grounded in Volterra functional
+        theory, making dynamic portfolio optimisation loops computationally
+        feasible and the capital constraint analytically tractable as an
+        explicit gradient-available term.
+
+  \item \textbf{Module 3 (Axis~3)} replaces the annual, siloed allocation
+        process with a dynamic joint policy that simultaneously optimises TPA
+        factor exposures and hedging positions under an automatically
+        identified portfolio-specific objective and an explicit SCR constraint.
+\end{itemize}
+
+Beyond the industrial deliverables, the thesis makes three mathematically
+self-contained contributions: the extension of $W_2$ convergence theory to
+regime-conditional score-based models under sequential estimation error; the
+formalisation of private asset valuation bias through the theory of Volterra
+processes and path-dependent risk measures; and the characterisation of
+optimal stochastic control policies under dynamic, non-Markovian capital
+constraints derived from a general class of shortfall risk measures. Together,
+these contributions establish rigorous foundations for a new generation of
+quantitative tools in insurance balance sheet management --- tools that are
+simultaneously \emph{theoretically grounded}, \emph{computationally efficient},
+\emph{interoperable} and \emph{regulatory-compliant}.
+
+\medskip
+\noindent\textbf{Beyond the three years.}
+The certified-generation / differentiable-proxy / stochastic-control triptych
+is deliberately generic. The same architecture extends naturally to dynamic
+ORSA projection, climate stress-testing under regime-dependent transition
+scenarios, and IFRS~17 risk-adjustment computation --- opening a longer-term
+research programme on \emph{certified, capital-aware decision systems} for the
+insurance balance sheet.
 
 % ================================================================
 \section*{References}
 % ================================================================
 \renewcommand{\section}[2]{}
 
-\begin{thebibliography}{22}
+\begin{thebibliography}{30}
+
+\bibitem{abijabar2019}
+Abi Jaber, E., Larsson, M., \& Pulido, S. (2019).
+Affine Volterra processes.
+\emph{The Annals of Applied Probability}, 29(6), 3155--3200.
+
+\bibitem{bardoscia2021}
+Bardoscia, M., Barucca, P., Battiston, S., Caccioli, F., Cimini, G.,
+Garlaschelli, D., Saracco, F., Squartini, T., \& Caldarelli, G. (2021).
+The physics of financial networks.
+\emph{Nature Reviews Physics}, 3(7), 490--507.
+
+\bibitem{bourgey2020}
+Bourgey, F. (2020).
+\emph{Stochastic approximations for financial risk computations}.
+PhD thesis.
 
 \bibitem{buehler2019}
 Buehler, H., Gonon, L., Teichmann, J., \& Wood, B. (2019).
@@ -631,15 +646,24 @@ Carbonneau, A. (2021).
 Deep hedging of long-term financial derivatives.
 \emph{Insurance: Mathematics and Economics}, 99, 327--340.
 
+\bibitem{chen2018}
+Chen, R.T.Q., Rubanova, Y., Bettencourt, J., \& Duvenaud, D. (2018).
+Neural ordinary differential equations.
+\emph{Advances in Neural Information Processing Systems}, 31.
+
 \bibitem{chopin2020}
 Chopin, N., \& Papaspiliopoulos, O. (2020).
 \emph{An Introduction to Sequential Monte Carlo}. Springer.
 
-\bibitem{embrechts2002}
-Embrechts, P., McNeil, A.J., \& Straumann, D. (2002).
-Correlation and dependence in risk management: properties and pitfalls.
-In \emph{Risk Management: Value at Risk and Beyond},
-Cambridge University Press, 176--223.
+\bibitem{demarco2025}
+De Marco, S., Pham, H., \& Zanni, D. (2025).
+Schr\"{o}dinger bridges with jumps for time series generation.
+\emph{arXiv preprint arXiv:2602.20011}.
+
+\bibitem{eleuch2019}
+El Euch, O., \& Rosenbaum, M. (2019).
+The characteristic function of rough Heston models.
+\emph{Mathematical Finance}, 29(1), 3--38.
 
 \bibitem{fermanian2013}
 Fermanian, J.-D. (2013).
@@ -651,6 +675,12 @@ Springer, 61--89.
 Fermanian, J.-D. (2022).
 Conditional copulas, dependence modeling and the role of conditioning.
 \emph{Annals of Statistics}.
+
+\bibitem{ocello2025icml}
+Gentiloni-Silveri, M., \& Ocello, A. (2025).
+Beyond log-concavity and score regularity: Improved convergence bounds
+for score-based generative models in $W_2$-distance.
+\emph{Forty-Second International Conference on Machine Learning (ICML)}.
 
 \bibitem{goodfellow2014}
 Goodfellow, I. et al. (2014).
@@ -668,42 +698,52 @@ A neural network approach to efficient valuation of large portfolios
 of variable annuities.
 \emph{Insurance: Mathematics and Economics}, 105, 96--116.
 
+\bibitem{kotelnikov2023}
+Kotelnikov, A., Baranchuk, D., Rubachev, I., \& Babenko, A. (2023).
+TabDDPM: Modelling Tabular Data with Diffusion Models.
+\emph{International Conference on Machine Learning (ICML)}.
+
 \bibitem{krah2018}
 Krah, A.-S., Nikolic, Z., \& Korn, R. (2018).
 A Least-Squares Monte Carlo framework in proxy modeling of life
 insurance companies.
 \emph{Risks}, 6(2), 62.
 
+\bibitem{lipman2022}
+Lipman, Y., Chen, R.T.Q., Ben-Hamu, H., Nickel, M., \& Le, M. (2022).
+Flow Matching for Generative Modeling.
+\emph{International Conference on Learning Representations (ICLR)}.
+
 \bibitem{nystrup2017}
 Nystrup, P., Madsen, H., \& Lindstrom, E. (2017).
 Dynamic portfolio optimization across hidden market regimes.
 \emph{Quantitative Finance}, 18(1), 83--95.
-
-\bibitem{ocello2024tmlr}
-Strasman, S., Ocello, A., Boyer, C., Le~Corff, S., \& Lemaire, V. (2024).
-An analysis of the noise schedule for score-based generative models.
-\emph{Transactions on Machine Learning Research (TMLR)}.
-
-\bibitem{ocello2025icml}
-Gentiloni-Silveri, M., \& Ocello, A. (2025).
-Beyond log-concavity and score regularity: Improved convergence bounds
-for score-based generative models in $W_2$-distance.
-\emph{Forty-Second International Conference on Machine Learning (ICML)}.
-
-\bibitem{patton2006}
-Patton, A.J. (2006).
-Modelling asymmetric exchange rate dependence.
-\emph{International Economic Review}, 47(2), 527--556.
 
 \bibitem{pham2009}
 Pham, H. (2009).
 \emph{Continuous-Time Stochastic Control and Optimization
 with Financial Applications}. Springer.
 
+\bibitem{reveillac2013}
+R\'{e}veillac, A. (2013).
+CRRA utility maximization under dynamic risk constraints.
+\emph{Mathematical Finance}.
+
+\bibitem{rosazza2024}
+Rosazza Gianin, E., et al.\ (2024).
+Shortfall systemic risk measures, capital allocation rules and
+generalised collapse to the mean: Theory and practice.
+\emph{Working paper}.
+
 \bibitem{sklar1959}
 Sklar, A. (1959).
 Fonctions de repartition a $n$ dimensions et leurs marges.
 \emph{Publications de l'Institut de Statistique de Paris}, 8, 229--231.
+
+\bibitem{ocello2024tmlr}
+Strasman, S., Ocello, A., Boyer, C., Le~Corff, S., \& Lemaire, V. (2024).
+An analysis of the noise schedule for score-based generative models.
+\emph{Transactions on Machine Learning Research (TMLR)}.
 
 \bibitem{thinking_ahead}
 Thinking Ahead Institute. (2025).
@@ -723,27 +763,6 @@ Quant GANs: Deep generation of financial time series.
 Yoon, J., Jarrett, D., \& van der Schaar, M. (2019).
 Time-series generative adversarial networks.
 \emph{Advances in Neural Information Processing Systems}, 32.
-
-\bibitem{bourgey2020}
-Bourgey, F. (2020).
-\emph{Stochastic approximations for financial risk computations}.
-PhD thesis.
-
-\bibitem{demarco2025}
-De Marco, S., Pham, H., \& Zanni, D. (2025).
-Schr\"{o}dinger bridges with jumps for time series generation.
-\emph{arXiv preprint arXiv:2602.20011}.
-
-\bibitem{reveillac2013}
-R\'{e}veillac, A. (2013).
-CRRA utility maximization under dynamic risk constraints.
-\emph{Mathematical Finance}.
-
-\bibitem{rosazza2024}
-Rosazza Gianin, E., et al.\ (2024).
-Shortfall systemic risk measures, capital allocation rules and
-generalised collapse to the mean: Theory and practice.
-\emph{Working paper}.
 
 \end{thebibliography}
 
