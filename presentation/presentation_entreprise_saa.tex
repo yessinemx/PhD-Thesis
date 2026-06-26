@@ -1,0 +1,249 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{top=0.8cm,bottom=2.5cm,left=2.5cm,right=2.5cm}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{parskip}
+\setlength{\parskip}{6pt}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\hypersetup{colorlinks=false,pdfborder={0 0 0}}
+\usepackage{enumitem}
+\usepackage{titlesec}
+
+% ---------- section style ----------
+\titleformat{\section}
+  {\normalsize\bfseries}
+  {}{0em}{}[\vspace{-2pt}\rule{\linewidth}{0.8pt}\vspace{2pt}]
+\titlespacing{\section}{0pt}{12pt}{6pt}
+\titleformat{\subsection}
+  {\normalsize\bfseries\itshape}{}{0em}{}
+\titlespacing{\subsection}{0pt}{8pt}{3pt}
+
+% ---------- footer ----------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[C]{\tiny
+  Generali Iard, Société anonyme au capital de 94~630~300 euros ---
+  Entreprise régie par le Code des assurances --- 552~062~663 RCS Paris
+  --- IDU ADEME FR232327\_01NBYI\\
+  Generali Vie, Société anonyme au capital de 341~059~488 euros ---
+  Fonds de Retraite Professionnelle Supplémentaire régi par le Code des assurances
+  --- 880~265~418 RCS Paris --- IDU ADEME FR232327\_01NBYI\\
+  Siège social : 89 rue Taitbout --- 75009 Paris --- Sociétés appartenant
+  au Groupe Generali immatriculé sur le registre italien des groupes
+  d'assurances sous le numéro 026}
+
+\begin{document}
+\thispagestyle{fancy}
+
+% ================================================================
+%  TITLE
+% ================================================================
+\begin{center}
+  {\Large\bfseries Présentation de l'entreprise et du service de R\&D}\\[6pt]
+  {\normalsize\itshape Dossier de candidature CIFRE --- Yassine MANNAI}
+\end{center}
+
+\vspace{0.4cm}
+
+% ================================================================
+\section{Présentation de Generali France}
+% ================================================================
+
+Generali France est l'un des principaux assureurs de l'Hexagone, s'appuyant
+sur l'esprit pionnier d'un groupe international fondé en 1831.  L'entreprise
+opère sur l'ensemble des segments de l'assurance (Vie, Dommages, Santé,
+Prévoyance et Retraite) avec une ambition de \og{}Lifetime Partner\fg{} pour
+ses clients.
+
+% ----------------------------------------------------------------
+\subsection{Indicateurs clés et volume d'activité (2025)}
+% ----------------------------------------------------------------
+% NOTE : chiffres FY2025 — à confirmer sur le rapport annuel Generali France publié début 2026.
+\begin{itemize}[leftmargin=1.6em,itemsep=1pt]
+  \item \textbf{Chiffre d'affaires :} 20,5 milliards d'euros.                   % TODO: confirmer
+  \item \textbf{Résultat opérationnel :} 1~400 millions d'euros (normes IFRS~17/9). % TODO: confirmer
+  \item \textbf{Actifs sous gestion :} 124 milliards d'euros.                   % TODO: confirmer
+  \item \textbf{Effectif total :} 9~300 collaborateurs et salariés commerciaux.
+  \item \textbf{Rayonnement :} 8 millions de clients et un réseau de près de 800 agents généraux.
+\end{itemize}
+
+% ----------------------------------------------------------------
+\subsection{Organisation et direction de l'encadrement}
+% ----------------------------------------------------------------
+
+L'encadrement industriel de la thèse est rattaché à la \textbf{Direction des
+Investissements} de Generali France, placée sous la responsabilité de
+\textbf{Cédrik d'Aviau de Ternay} (Directeur des Investissements).  Cette
+direction pilote l'allocation stratégique du bilan de Generali France dans le
+cadre de Solvabilité~II, en s'appuyant notamment sur l'outil propriétaire du
+Groupe, \textbf{GPS} (\textit{Group Portfolio Solutions}).
+
+% ================================================================
+\section{Équipe d'accueil : Allocation Stratégique d'Actifs (SAA)}
+% ================================================================
+
+Le candidat sera intégré au sein de l'\textbf{équipe Allocation Stratégique
+d'Actifs (SAA)}, entité de recherche quantitative et de pilotage du bilan au
+sein de la Direction des Investissements.  L'équipe regroupe des expertises en
+finance quantitative, gestion actif-passif (ALM), modélisation actuarielle et
+optimisation de portefeuille sous contraintes réglementaires.
+
+\begin{itemize}[leftmargin=1.6em,itemsep=1pt]
+  \item \textbf{Directeur des Investissements :} Cédrik d'Aviau de Ternay.
+  \item \textbf{Responsable scientifique (Encadrant industriel) :}
+        Mamy Ramamonjisoa, membre de l'équipe SAA.
+  \item \textbf{Doctorant CIFRE (candidat) :} Yassine Mannai.
+\end{itemize}
+
+% ================================================================
+\section{Le service de R\&D : équipe Allocation Stratégique d'Actifs}
+% ================================================================
+
+L'équipe SAA constitue le pôle de recherche quantitative appliquée de la
+Direction des Investissements.  Elle est chargée de :
+
+\begin{itemize}[leftmargin=1.6em,itemsep=1pt]
+  \item \textbf{Pilotage stratégique du bilan :} construction et révision de
+        l'allocation stratégique d'actifs dans le cadre de Solvabilité~II, via
+        l'outil propriétaire GPS (\textit{Group Portfolio Solutions}).
+  \item \textbf{Modélisation des risques :} développement et maintenance du
+        générateur de scénarios économiques (ESG), calcul du capital réglementaire
+        (SCR) par simulation imbriquée (LSMC), et optimisation actif-passif (ALM).
+  \item \textbf{Recherche et innovation :} intégration des approches de la
+        finance quantitative contemporaine (modèles génératifs, apprentissage par
+        renforcement, proxy ML) dans les processus d'allocation et de couverture.
+  \item \textbf{Coordination opérationnelle :} transmission des instructions de
+        réallocation à Generali Asset Management (GenAM) et suivi de l'exécution.
+\end{itemize}
+
+% ================================================================
+\section{Projet de thèse CIFRE}
+% ================================================================
+
+% ----------------------------------------------------------------
+\subsection{Titre}
+% ----------------------------------------------------------------
+
+\begin{center}
+  \itshape
+  Dépendance factorielle conditionnelle aux régimes, proxy de capital supervisé
+  et couverture profonde pour le Total Portfolio Approach en assurance
+\end{center}
+
+% ----------------------------------------------------------------
+\subsection{Contexte et motivation industrielle}
+% ----------------------------------------------------------------
+
+La gestion du risque de dépendance entre facteurs économiques dans un contexte
+de changements de régime constitue un enjeu croissant pour les assureurs.
+L'épisode de 2022 --- au cours duquel la corrélation entre actions et
+obligations s'est inversée simultanément sur tous les marchés --- a révélé les
+limites des approches classiques d'allocation par classes d'actifs et motive le
+développement d'une approche \textbf{factorielle, dynamique et intégrée} au
+sein de l'équipe SAA.
+
+Les outils actuels de l'équipe souffrent de quatre limitations structurelles :
+(i) des corrélations calibrées sur des moyennes historiques, aveugles aux
+ruptures de régime ; (ii) un proxy LSMC polynomial précis uniquement dans la
+région de calibration, dégradé précisément dans les zones de stress les plus
+critiques ; (iii) une décision d'allocation et de couverture effectuée en
+silos, sans politique jointe ; (iv) des actifs privés à valorisation lissée
+introduisant un biais de sous-estimation du risque réel.
+
+La thèse vise à fournir les fondations quantitatives permettant de rendre
+opérationnel le \textbf{Total Portfolio Approach (TPA)} pour un assureur sous
+Solvabilité~II.
+
+% ----------------------------------------------------------------
+\subsection{Axes de recherche}
+% ----------------------------------------------------------------
+
+\begin{enumerate}[leftmargin=2em,itemsep=4pt]
+  \item \textbf{Simulation génératrice conditionnelle aux régimes (Axe~1).}
+        Développement et comparaison de modèles génératifs
+        (GAN conditionnel, VAE conditionnel, Score-Based Generative Models)
+        pour simuler la distribution jointe des facteurs TPA sous chaque régime
+        macroéconomique identifié en temps réel par un filtre séquentiel.
+        Validation formelle de la structure de dépendance apprise par des tests
+        de spécification sur copules conditionnelles (Fermanian, 2013, 2022)
+        et établissement de garanties de convergence Wasserstein-2.
+
+  \item \textbf{Proxy de SCR supervisé pour la décision dynamique (Axe~2).}
+        Construction d'un proxy du capital réglementaire (SCR)
+        exprimé en fonction des facteurs TPA, du régime courant et des états
+        des passifs (dont les lags de NAV d'actifs privés), offrant un temps
+        d'inférence inférieur à 10~ms et des bornes d'erreur contrôlées
+        par régime --- condition nécessaire à son intégration comme contrainte
+        explicite dans une boucle d'optimisation dynamique.
+
+  \item \textbf{Politique jointe d'allocation et de couverture profonde (Axe~3).}
+        Apprentissage d'une politique de décision dynamique optimisant
+        conjointement les expositions aux facteurs TPA et les positions de
+        couverture (\textit{deep hedging}), avec une fonction objectif
+        identifiée automatiquement à partir du facteur de risque dominant,
+        sous contraintes de capital (proxy SCR), de liquidité et d'engagements
+        en fonds fermés.
+\end{enumerate}
+
+% ----------------------------------------------------------------
+\subsection{Encadrement}
+% ----------------------------------------------------------------
+
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+  \toprule
+  \textbf{Rôle}                  & \textbf{Personne / Institution} \\
+  \midrule
+  Candidat                       & Yassine Mannai \\
+  Directrice de thèse            & Caroline Hillairet
+                                   (Laboratoire CREST, ENSAE Paris) \\
+  Co-directeur de thèse          & Anthony Réveillac
+                                   (INSA Toulouse,
+                                    Institut de Mathématiques de Toulouse) \\
+  Encadrant industriel           & Mamy Ramamonjisoa ---
+                                   équipe SAA, Generali France \\
+  Directeur des Investissements  & Cédrik d'Aviau de Ternay ---
+                                   Generali France \\
+  Durée                          & 36 mois (CDD) \\
+  Démarrage prévu                & Octobre -- Janvier 2026/2027 \\
+  \bottomrule
+\end{tabularx}
+
+% ================================================================
+\section{Intérêt des travaux pour le développement de l'entreprise}
+% ================================================================
+
+La thèse s'inscrit dans le pilier \og{}Excellence\fg{} du plan stratégique
+\textbf{Boost 2027}.  Pour Generali France, l'intérêt est triple :
+
+\begin{enumerate}[leftmargin=2em,itemsep=4pt]
+  \item \textbf{Résilience de l'allocation stratégique.}
+        Les travaux fourniront un outil de simulation capable d'anticiper les
+        ruptures de régime et d'adapter l'allocation du bilan avant les phases
+        de stress, réduisant l'exposition aux pertes extrêmes dues à des
+        dépendances non linéaires entre facteurs.
+
+  \item \textbf{Accélération du calcul du capital réglementaire.}
+        Le proxy SCR supervisé permettra d'intégrer le coût en capital
+        directement dans les boucles d'optimisation en temps quasi-réel,
+        rendant possible une SAA dynamique --- là où le recalcul complet
+        (Prophet/MoSes) nécessite aujourd'hui plusieurs heures.
+
+  \item \textbf{Opérationnalisation du Total Portfolio Approach.}
+        Les modules développés seront conçus pour être intégrés à \textbf{GPS}
+        (\textit{Group Portfolio Solutions}), l'outil propriétaire du Groupe,
+        offrant à Generali France un avantage concurrentiel durable dans la
+        gestion actif-passif et le pilotage du bilan sous Solvabilité~II.
+\end{enumerate}
+
+\end{document}
